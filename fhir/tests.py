@@ -489,6 +489,44 @@ class FHIRImportTests(TestCase):
         self.assertEqual(PatientProfile.objects.count(), 1)
         self.assertEqual(Condition.objects.count(), 1)
 
+    def test_form_ignores_bulk_fhir_zip_log_sidecar(self):
+        archive_content = BytesIO()
+        with ZipFile(archive_content, "w") as archive:
+            archive.writestr(
+                "bulk-export/Patient.000.ndjson",
+                json.dumps(
+                    {
+                        "resourceType": "Patient",
+                        "id": "pat-1",
+                        "name": [{"family": "Rivera", "given": ["Maya"]}],
+                    }
+                )
+                + "\n",
+            )
+            archive.writestr(
+                "bulk-export/log.ndjson",
+                json.dumps(
+                    {
+                        "exportId": "export-1",
+                        "timestamp": "2026-06-18T10:00:00Z",
+                        "eventId": "complete",
+                        "eventDetail": "Bulk export completed.",
+                    }
+                )
+                + "\n",
+            )
+
+        uploaded_file = SimpleUploadedFile(
+            "sample-bulk-fhir-datasets-10-patients.zip",
+            archive_content.getvalue(),
+            content_type="application/zip",
+        )
+        form = FHIRImportForm(data={}, files={"fhir_file": uploaded_file})
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(len(form.cleaned_data["payloads"]), 1)
+        self.assertEqual(form.cleaned_data["payloads"][0]["resourceType"], "Patient")
+
     def test_import_page_can_quick_add_patient(self):
         User = get_user_model()
         user = User.objects.create_superuser(

@@ -9,6 +9,11 @@ from patients.models import PatientProfile
 from .importer import loads_fhir_documents
 
 
+FHIR_ZIP_SIDECAR_FILENAMES = {
+    "log.ndjson",
+}
+
+
 class FHIRImportForm(forms.Form):
     patient = forms.ModelChoiceField(
         label="Attach to patient",
@@ -74,6 +79,8 @@ class FHIRImportForm(forms.Form):
                 for name in archive.namelist():
                     path = PurePosixPath(name)
                     if path.name.startswith(".") or not path.name:
+                        continue
+                    if path.name.lower() in FHIR_ZIP_SIDECAR_FILENAMES:
                         continue
                     if path.suffix.lower() not in {".json", ".ndjson"}:
                         continue
