@@ -65,12 +65,20 @@ class ObservationAdmin(admin.ModelAdmin):
 
 @admin.register(Encounter)
 class EncounterAdmin(admin.ModelAdmin):
-    list_display = ("id", "patient", "encounter_type", "provider_name", "facility_name", "start_time")
+    list_display = ("id", "patient", "encounter_type", "provider_name", "facility_name", "display_start_time")
     list_display_links = ("encounter_type",)
     search_fields = ("provider_name", "facility_name", "reason")
     list_filter = ("patient", "status")
     ordering = ("-start_time",)
     autocomplete_fields = ["patient"]
+
+    @admin.display(description="Start time", ordering="start_time")
+    def display_start_time(self, obj):
+        if not obj.start_time:
+            return "-"
+        if obj.start_time.hour == 0 and obj.start_time.minute == 0 and obj.start_time.second == 0:
+            return obj.start_time.date()
+        return obj.start_time
 
 
 class CareTeamParticipantInline(admin.StackedInline):

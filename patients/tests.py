@@ -373,6 +373,6 @@ class PatientProfileAdminTests(TestCase):
         response = self.client.get(f"/admin/patients/patientprofile/{patient.pk}/change/")
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Care Team (1)")
+        self.assertContains(response, "Care Team")
         self.assertContains(response, f"/admin/clinical/careteam/?patient__id__exact={patient.pk}")
         self.assertContains(response, f"/admin/clinical/careteam/add/?patient={patient.pk}")

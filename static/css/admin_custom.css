@@ -183,34 +183,247 @@
     padding: 12px !important;
 }
 
-/* Hide Django formset scaffolding in read-only patient summary inlines. */
+/* Patient profile chart view. */
 body.app-patients.model-patientprofile.change-form .card {
     margin-bottom: 18px !important;
 }
 
-body.app-patients.model-patientprofile.change-form .card .card-body {
-    padding-top: 18px !important;
-    padding-bottom: 18px !important;
+body.app-patients.model-patientprofile.change-form .card-body {
+    padding: 18px !important;
 }
 
-.card.patient-record-inline {
-    margin-bottom: 18px !important;
-}
-
-.card.patient-record-inline .card-body {
-    padding-top: 16px !important;
-    padding-bottom: 16px !important;
-}
-
-.card.patient-record-inline th.original,
-.card.patient-record-inline td.original,
-.card.patient-record-inline tr.empty-form,
-.card.patient-record-inline .empty-form,
-.card.patient-record-inline .inline-group .add-row,
-fieldset.patient-record-inline th.original,
-fieldset.patient-record-inline td.original,
-fieldset.patient-record-inline tr.empty-form,
-fieldset.patient-record-inline .empty-form,
-fieldset.patient-record-inline .inline-group .add-row {
+body.app-patients.model-patientprofile.change-form
+    :is(.field-patient_overview, .field-latest_observations, .field-latest_visits)
+    > .row
+    > label {
     display: none !important;
+}
+
+body.app-patients.model-patientprofile.change-form
+    :is(.field-patient_overview, .field-latest_observations, .field-latest_visits)
+    > .row
+    > div {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+body.app-patients.model-patientprofile.change-form
+    :is(.field-patient_overview, .field-latest_observations, .field-latest_visits)
+    .readonly {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.patient-overview {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(240px, 1fr) minmax(360px, 1.4fr);
+    max-width: 100%;
+}
+
+.patient-overview-main,
+.patient-overview-stats {
+    min-width: 0;
+}
+
+.patient-overview-main h3 {
+    font-size: 1.15rem;
+    font-weight: 750;
+    margin: 0 0 14px;
+}
+
+.patient-overview-main dl,
+.patient-overview-stats {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+.patient-overview-main dl {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.patient-overview-main dt {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+}
+
+.patient-overview-main dd {
+    color: #111827;
+    font-weight: 600;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.patient-overview-stats {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.patient-stat {
+    background: #fff;
+    border: 1px solid #dbe3ef;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.patient-stat-main,
+.patient-stat-add {
+    text-decoration: none !important;
+}
+
+.patient-stat-main {
+    color: #334155 !important;
+    flex: 1 1 auto;
+    padding: 10px;
+    text-align: center;
+}
+
+.patient-stat-main:hover,
+.patient-stat-add:hover {
+    background: #eff6ff;
+}
+
+.patient-stat strong {
+    color: #1d4ed8;
+    display: block;
+    font-size: 1.25rem;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.patient-stat span {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.patient-stat-add {
+    background: #f8fafc;
+    border-top: 1px solid #dbe3ef;
+    color: #1d4ed8 !important;
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 7px 10px;
+    text-align: center;
+}
+
+.patient-compact-table {
+    border: 1px solid #dbe3ef;
+    border-radius: 6px;
+    overflow-x: auto;
+    width: 100%;
+}
+
+.patient-compact-table table {
+    background: #fff;
+    margin: 0;
+    min-width: 680px;
+    width: 100%;
+}
+
+.patient-compact-table th,
+.patient-compact-table td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+
+.patient-compact-table th {
+    background: #f8fafc;
+    color: #111827;
+    font-weight: 700;
+}
+
+.patient-compact-table td:last-child {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.patient-compact-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.patient-table-actions,
+.patient-empty-state {
+    align-items: center;
+    background: #f8fafc;
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+}
+
+.patient-table-actions {
+    border-top: 1px solid #dbe3ef;
+    justify-content: flex-end;
+}
+
+.patient-empty-state {
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    color: #475569;
+    justify-content: space-between;
+}
+
+.card.patient-record-inline .table {
+    margin-bottom: 0 !important;
+    white-space: normal !important;
+}
+
+.card.patient-record-inline :is(th, td) {
+    vertical-align: middle !important;
+    white-space: normal !important;
+}
+
+.card.patient-record-inline .field-open_record {
+    text-align: right;
+    white-space: nowrap !important;
+    width: 1%;
+}
+
+.card.patient-record-inline :is(th.original, td.original, tr.empty-form, .empty-form, .add-row),
+fieldset.patient-record-inline :is(th.original, td.original, tr.empty-form, .empty-form, .add-row) {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    .patient-overview {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    body.app-patients.model-patientprofile.change-form .card-body {
+        padding: 12px !important;
+    }
+
+    .patient-overview,
+    .patient-overview-main dl,
+    .patient-overview-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .patient-stat-main {
+        align-items: baseline;
+        display: flex;
+        justify-content: space-between;
+        text-align: left;
+    }
+
+    .patient-stat strong {
+        margin: 0;
+    }
 }
