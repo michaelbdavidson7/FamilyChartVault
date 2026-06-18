@@ -1,8 +1,11 @@
 import hashlib
 import json
+from base64 import b64decode
+from binascii import Error as BinasciiError
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
+from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils.dateparse import parse_date, parse_datetime
 
@@ -19,6 +22,7 @@ from clinical.models import (
     Organization,
     Practitioner,
 )
+from documents.models import ClinicalDocument
 from patients.models import PatientProfile
 
 from .models import FHIRLink, FHIRResourceSnapshot
@@ -34,6 +38,7 @@ SUPPORTED_RESOURCE_TYPES = {
     "Observation",
     "Encounter",
     "CareTeam",
+    "DocumentReference",
     "Practitioner",
     "Organization",
     "Location",
@@ -122,6 +127,7 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
                 "Observation": _import_observation,
                 "Encounter": _import_encounter,
                 "CareTeam": _import_care_team,
+                "DocumentReference": _import_document_reference,
                 "Practitioner": _import_practitioner,
                 "Organization": _import_organization,
                 "Location": _import_location,
@@ -370,6 +376,28 @@ def _import_care_team(resource, patient):
     return obj, created
 
 
+def _import_document_reference(resource, patient):
+    obj = _object_for_resource(resource, "documents.ClinicalDocument") or ClinicalDocument(patient=patient)
+    attachment = _document_reference_attachment(resource)
+    document_type = _codeable_text(resource.get("type")) or _codeable_text(_first(resource.get("category"))) or ""
+
+    obj.patient = patient
+    obj.title = attachment.get("title") or document_type or resource.get("description") or "Clinical document"
+    obj.document_type = document_type
+    obj.description = _document_reference_description(resource)
+    obj.mime_type = attachment.get("contentType") or ""
+    obj.source_name = _display(_first(resource.get("author"))) or _display(resource.get("custodian"))
+    obj.source_date = _date(resource.get("date") or ((resource.get("context") or {}).get("period") or {}).get("start"))
+
+    file_content = _document_reference_file_content(resource, attachment)
+    if file_content and not obj.file:
+        obj.file.save(file_content[0], file_content[1], save=False)
+
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
 def _import_practitioner(resource, patient=None):
     obj = _object_for_resource(resource, "clinical.Practitioner") or Practitioner()
     obj.name = _human_name(resource) or "Unknown practitioner"
@@ -437,6 +465,7 @@ def _object_for_resource(resource, django_model):
         Encounter,
         CareTeam,
         CareTeamParticipant,
+        ClinicalDocument,
         Practitioner,
         Organization,
         Location,
@@ -661,6 +690,50 @@ def _care_team_managing_organizations(resource):
         if isinstance(organization, Organization):
             organizations.append(organization)
     return organizations
+
+
+def _document_reference_attachment(resource):
+    content = _first(resource.get("content")) or {}
+    attachment = content.get("attachment") or {}
+    return attachment if isinstance(attachment, dict) else {}
+
+
+def _document_reference_description(resource):
+    parts = []
+    if resource.get("description"):
+        parts.append(resource["description"])
+    if resource.get("status"):
+        parts.append(f"Status: {resource['status']}")
+    custodian = _display(resource.get("custodian"))
+    if custodian:
+        parts.append(f"Custodian: {custodian}")
+    return "\n".join(parts)
+
+
+def _document_reference_file_content(resource, attachment):
+    data = attachment.get("data")
+    if not data:
+        return None
+    try:
+        decoded = b64decode(data, validate=True)
+    except (BinasciiError, ValueError):
+        return None
+    resource_id = resource.get("id") or "document"
+    extension = _file_extension_for_mime_type(attachment.get("contentType"))
+    filename = f"fhir-document-{resource_id}{extension}"
+    return filename, ContentFile(decoded)
+
+
+def _file_extension_for_mime_type(mime_type):
+    mime_type = (mime_type or "").split(";", 1)[0].strip().lower()
+    return {
+        "application/pdf": ".pdf",
+        "text/html": ".html",
+        "text/plain": ".txt",
+        "application/json": ".json",
+        "application/xml": ".xml",
+        "text/xml": ".xml",
+    }.get(mime_type, ".bin")
 
 
 def _sync_care_team_participants(resource, care_team):

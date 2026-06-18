@@ -1,5 +1,6 @@
 import json
 import tempfile
+from base64 import b64encode
 from datetime import date
 from io import BytesIO
 from pathlib import Path
@@ -9,6 +10,7 @@ from zipfile import ZipFile
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.test import TestCase
 from django.urls import reverse
 
@@ -22,6 +24,7 @@ from clinical.models import (
     Organization,
     Practitioner,
 )
+from documents.models import ClinicalDocument
 from patients.models import PatientProfile
 
 from .backups import create_pre_import_database_backup, list_fhir_import_database_backups
@@ -413,6 +416,51 @@ class FHIRImportTests(TestCase):
 
         location_participant = CareTeamParticipant.objects.get(role="Clinic")
         self.assertEqual(location_participant.location, location)
+
+    def test_imports_document_reference_as_clinical_document(self):
+        patient = PatientProfile.objects.create(first_name="Maya", last_name="Rivera")
+        encoded_document = b64encode(b"Visit summary").decode("ascii")
+        payload = {
+            "resourceType": "DocumentReference",
+            "id": "doc-1",
+            "status": "current",
+            "subject": {"reference": "Patient/pat-1"},
+            "type": {"coding": [{"display": "History and physical note"}]},
+            "date": "2024-01-02T03:04:05Z",
+            "author": [{"display": "Dr. Ada Lovelace"}],
+            "content": [
+                {
+                    "attachment": {
+                        "contentType": "text/plain; charset=utf-8",
+                        "title": "Visit summary",
+                        "data": encoded_document,
+                    }
+                }
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            result = import_fhir_json(payload, target_patient=patient)
+            document = ClinicalDocument.objects.get()
+
+            self.assertEqual(result.created, 1)
+            self.assertEqual(result.errors, [])
+            self.assertEqual(document.patient, patient)
+            self.assertEqual(document.title, "Visit summary")
+            self.assertEqual(document.document_type, "History and physical note")
+            self.assertEqual(document.mime_type, "text/plain; charset=utf-8")
+            self.assertEqual(document.source_name, "Dr. Ada Lovelace")
+            self.assertEqual(document.source_date, date(2024, 1, 2))
+            with document.file.open("rb") as imported_file:
+                self.assertEqual(imported_file.read(), b"Visit summary")
+            self.assertTrue(
+                FHIRLink.objects.filter(
+                    resource_type="DocumentReference",
+                    resource_id="doc-1",
+                    django_model="documents.ClinicalDocument",
+                    django_object_id=document.id,
+                ).exists()
+            )
 
     def test_missing_patient_reference_is_snapshotted_as_invalid(self):
         result = import_fhir_json(
