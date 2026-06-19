@@ -55,6 +55,10 @@ from clinical.models import (
     Specimen,
     Communication,
     CommunicationRequest,
+    Consent,
+    Coverage,
+    ExplanationOfBenefit,
+    InsurancePlan,
     QuestionnaireResponse,
 )
 from documents.models import ClinicalDocument
@@ -89,6 +93,8 @@ SUPPORTED_RESOURCE_TYPES = {
     "CarePlan",
     "Communication",
     "CommunicationRequest",
+    "Consent",
+    "Coverage",
     "Device",
     "DeviceRequest",
     "DeviceUseStatement",
@@ -96,6 +102,8 @@ SUPPORTED_RESOURCE_TYPES = {
     "EpisodeOfCare",
     "Group",
     "Goal",
+    "ExplanationOfBenefit",
+    "InsurancePlan",
     "PractitionerRole",
     "Person",
     "Procedure",
@@ -113,6 +121,7 @@ SUPPORTED_RESOURCE_TYPES = {
 
 PATIENTLESS_RESOURCE_TYPES = {
     "Group",
+    "InsurancePlan",
     "Medication",
     "Person",
     "Practitioner",
@@ -165,6 +174,7 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
 
             importer = {
                 "Group": _import_group,
+                "InsurancePlan": _import_insurance_plan,
                 "Medication": _import_medication_catalog,
                 "Person": _import_person,
                 "Practitioner": _import_practitioner,
@@ -233,9 +243,12 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
                 "CarePlan": _import_care_plan,
                 "Communication": _import_communication,
                 "CommunicationRequest": _import_communication_request,
+                "Consent": _import_consent,
+                "Coverage": _import_coverage,
                 "Device": _import_device,
                 "DocumentReference": _import_document_reference,
                 "EpisodeOfCare": _import_episode_of_care,
+                "ExplanationOfBenefit": _import_explanation_of_benefit,
                 "Goal": _import_goal,
                 "PractitionerRole": _import_practitioner_role,
                 "Procedure": _import_procedure,
@@ -287,6 +300,10 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
                 _sync_communication_relationships(resource)
             elif resource_type == "CommunicationRequest":
                 _sync_communication_request_relationships(resource)
+            elif resource_type == "Consent":
+                _sync_consent_relationships(resource)
+            elif resource_type == "Coverage":
+                _sync_coverage_relationships(resource)
             elif resource_type == "Person":
                 _sync_person_relationships(resource)
             elif resource_type == "ImmunizationRecommendation":
@@ -303,6 +320,8 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
                 _sync_encounter_relationships(resource)
             elif resource_type == "EpisodeOfCare":
                 _sync_episode_of_care_relationships(resource)
+            elif resource_type == "ExplanationOfBenefit":
+                _sync_explanation_of_benefit_relationships(resource)
             elif resource_type == "PractitionerRole":
                 _sync_practitioner_role_relationships(resource)
             elif resource_type == "Procedure":
@@ -854,6 +873,79 @@ def _import_questionnaire_response(resource, patient):
     return obj, created
 
 
+def _import_coverage(resource, patient):
+    obj = _object_for_resource(resource, "clinical.Coverage") or Coverage(patient=patient)
+    period = resource.get("period") or {}
+    obj.patient = patient
+    obj.payor_organization = _reference_as(_first(resource.get("payor")), Organization)
+    obj.policy_holder_patient = _reference_as(resource.get("policyHolder"), PatientProfile)
+    obj.subscriber_patient = _reference_as(resource.get("subscriber"), PatientProfile)
+    obj.status = resource.get("status") or ""
+    obj.coverage_type = _codeable_text(resource.get("type")) or ""
+    obj.subscriber_id = resource.get("subscriberId") or ""
+    obj.dependent = resource.get("dependent") or ""
+    obj.relationship = _codeable_text(resource.get("relationship")) or ""
+    obj.period_start = _date(period.get("start"))
+    obj.period_end = _date(period.get("end"))
+    obj.order = resource.get("order")
+    obj.network = resource.get("network") or ""
+    obj.class_summary = _coverage_class_summary(resource)
+    obj.cost_summary = _coverage_cost_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    _sync_coverage_relationships(resource, obj)
+    return obj, created
+
+
+def _import_explanation_of_benefit(resource, patient):
+    obj = _object_for_resource(resource, "clinical.ExplanationOfBenefit") or ExplanationOfBenefit(patient=patient)
+    billable_period = resource.get("billablePeriod") or {}
+    obj.patient = patient
+    obj.insurer = _reference_as(resource.get("insurer"), Organization)
+    obj.provider_practitioner = _reference_as(resource.get("provider"), Practitioner)
+    obj.provider_organization = _reference_as(resource.get("provider"), Organization)
+    obj.status = resource.get("status") or ""
+    obj.eob_type = _codeable_text(resource.get("type")) or ""
+    obj.use = resource.get("use") or ""
+    obj.outcome = resource.get("outcome") or ""
+    obj.disposition = resource.get("disposition") or ""
+    obj.billable_period_start = _date(billable_period.get("start"))
+    obj.billable_period_end = _date(billable_period.get("end"))
+    obj.created_date = _date(resource.get("created"))
+    obj.total_summary = _eob_total_summary(resource)
+    obj.diagnosis_summary = _eob_diagnosis_summary(resource)
+    obj.item_summary = _eob_item_summary(resource)
+    obj.payment_summary = _eob_payment_summary(resource)
+    obj.notes = _eob_notes(resource)
+    created = obj.pk is None
+    obj.save()
+    _sync_explanation_of_benefit_relationships(resource, obj)
+    return obj, created
+
+
+def _import_consent(resource, patient):
+    obj = _object_for_resource(resource, "clinical.Consent") or Consent(patient=patient)
+    provision = resource.get("provision") or {}
+    period = provision.get("period") or {}
+    obj.patient = patient
+    obj.organization = _reference_as(_first(resource.get("organization")), Organization)
+    obj.status = resource.get("status") or ""
+    obj.scope = _codeable_text(resource.get("scope")) or ""
+    obj.category = ", ".join(text for text in (_codeable_text(value) for value in resource.get("category") or []) if text)
+    obj.policy_rule = _codeable_text(resource.get("policyRule")) or ""
+    obj.start_date = _datetime(period.get("start"))
+    obj.end_date = _datetime(period.get("end"))
+    obj.decision = provision.get("type") or ""
+    obj.provision_summary = _consent_provision_summary(resource)
+    obj.verification_summary = _consent_verification_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    _sync_consent_relationships(resource, obj)
+    return obj, created
+
+
 def _import_clinical_impression(resource, patient):
     obj = _object_for_resource(resource, "clinical.ClinicalImpression") or ClinicalImpression(patient=patient)
     effective_period = resource.get("effectivePeriod") or {}
@@ -1249,6 +1341,26 @@ def _import_group(resource, patient=None):
     return obj, created
 
 
+def _import_insurance_plan(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.InsurancePlan") or InsurancePlan()
+    period = resource.get("period") or {}
+    obj.owned_by = _reference_as(resource.get("ownedBy"), Organization)
+    obj.administered_by = _reference_as(resource.get("administeredBy"), Organization)
+    obj.status = resource.get("status") or ""
+    obj.name = resource.get("name") or "Insurance plan"
+    obj.alias = ", ".join(resource.get("alias") or [])
+    obj.plan_type = ", ".join(text for text in (_codeable_text(value) for value in resource.get("type") or []) if text)
+    obj.period_start = _date(period.get("start"))
+    obj.period_end = _date(period.get("end"))
+    obj.coverage_area = "\n".join(_display(reference) for reference in resource.get("coverageArea") or [])
+    obj.contact_summary = _insurance_plan_contact_summary(resource)
+    obj.benefit_summary = _insurance_plan_benefit_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
 def _import_practitioner(resource, patient=None):
     obj = _object_for_resource(resource, "clinical.Practitioner") or Practitioner()
     obj.name = _human_name(resource) or "Unknown practitioner"
@@ -1325,6 +1437,7 @@ def _object_for_resource(resource, django_model):
         FHIRList,
         Flag,
         Goal,
+        InsurancePlan,
         Medication,
         MedicationAdministration,
         MedicationCatalog,
@@ -1337,6 +1450,9 @@ def _object_for_resource(resource, django_model):
         Device,
         Communication,
         CommunicationRequest,
+        Consent,
+        Coverage,
+        ExplanationOfBenefit,
         Encounter,
         EpisodeOfCare,
         CareTeam,
@@ -1397,10 +1513,14 @@ def _object_for_reference(reference):
         "Observation": "clinical.Observation",
         "Communication": "clinical.Communication",
         "CommunicationRequest": "clinical.CommunicationRequest",
+        "Consent": "clinical.Consent",
+        "Coverage": "clinical.Coverage",
         "Person": "clinical.Person",
         "CareTeam": "clinical.CareTeam",
         "CarePlan": "clinical.CarePlan",
         "Device": "clinical.Device",
+        "ExplanationOfBenefit": "clinical.ExplanationOfBenefit",
+        "InsurancePlan": "clinical.InsurancePlan",
         "Procedure": "clinical.Procedure",
         "QuestionnaireResponse": "clinical.QuestionnaireResponse",
         "RelatedPerson": "clinical.RelatedPerson",
@@ -1417,7 +1537,7 @@ def _object_for_reference(reference):
 
 
 def _resolve_patient(resource, patient_by_reference, default_patient=None):
-    subject = resource.get("subject") or resource.get("patient")
+    subject = resource.get("subject") or resource.get("patient") or resource.get("beneficiary")
     reference = subject.get("reference") if isinstance(subject, dict) else None
     if reference in patient_by_reference:
         return patient_by_reference[reference]
@@ -1764,6 +1884,182 @@ def _immunization_recommendation_summary(resource):
         line = " / ".join(part for part in parts if part)
         if line:
             lines.append(line)
+    return "\n".join(lines)
+
+
+def _coverage_class_summary(resource):
+    lines = []
+    for item in resource.get("class") or []:
+        parts = [_codeable_text(item.get("type")), item.get("value") or "", item.get("name") or ""]
+        line = " / ".join(part for part in parts if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _coverage_cost_summary(resource):
+    lines = []
+    for item in resource.get("costToBeneficiary") or []:
+        value = _money_text(item.get("valueMoney")) or _age_text(item.get("valueQuantity"))
+        parts = [_codeable_text(item.get("type")), value]
+        line = " / ".join(part for part in parts if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _money_text(value):
+    if not isinstance(value, dict):
+        return ""
+    amount = value.get("value")
+    currency = value.get("currency") or ""
+    return " ".join(str(part) for part in [amount, currency] if part)
+
+
+def _eob_total_summary(resource):
+    lines = []
+    for total in resource.get("total") or []:
+        line = " / ".join(part for part in [_codeable_text(total.get("category")), _money_text(total.get("amount"))] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _eob_diagnosis_summary(resource):
+    lines = []
+    for diagnosis in resource.get("diagnosis") or []:
+        diagnosis_text = _codeable_text(diagnosis.get("diagnosisCodeableConcept")) or _display(diagnosis.get("diagnosisReference"))
+        types = ", ".join(text for text in (_codeable_text(value) for value in diagnosis.get("type") or []) if text)
+        parts = [f"#{diagnosis.get('sequence')}" if diagnosis.get("sequence") else "", diagnosis_text, types]
+        line = " / ".join(part for part in parts if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _eob_item_summary(resource):
+    lines = []
+    for item in resource.get("item") or []:
+        product = _codeable_text(item.get("productOrService"))
+        quantity = _age_text(item.get("quantity"))
+        net = _money_text(item.get("net"))
+        adjudication = ", ".join(
+            " / ".join(part for part in [_codeable_text(adj.get("category")), _money_text(adj.get("amount"))] if part)
+            for adj in item.get("adjudication") or []
+        )
+        parts = [f"#{item.get('sequence')}" if item.get("sequence") else "", product, quantity, net, adjudication]
+        line = " / ".join(part for part in parts if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _eob_payment_summary(resource):
+    payment = resource.get("payment") or {}
+    return " / ".join(
+        part
+        for part in [
+            _codeable_text(payment.get("type")),
+            _money_text(payment.get("amount")),
+            payment.get("date") or "",
+        ]
+        if part
+    )
+
+
+def _eob_notes(resource):
+    notes = _notes(resource).splitlines() if _notes(resource) else []
+    for note in resource.get("processNote") or []:
+        text = note.get("text")
+        if text:
+            notes.append(text)
+    return "\n".join(notes)
+
+
+def _consent_provision_summary(resource):
+    lines = []
+
+    def collect(provision, depth=0):
+        if not isinstance(provision, dict):
+            return
+        parts = [
+            provision.get("type") or "",
+            _range_text(provision.get("period")),
+            ", ".join(_codeable_text(value) for value in provision.get("action") or [] if _codeable_text(value)),
+            ", ".join(_codeable_text(value) for value in provision.get("purpose") or [] if _codeable_text(value)),
+            ", ".join(_codeable_text(value) for value in provision.get("code") or [] if _codeable_text(value)),
+        ]
+        line = " / ".join(part for part in parts if part)
+        if line:
+            lines.append(f"{'  ' * depth}{line}")
+        for child in provision.get("provision") or []:
+            collect(child, depth + 1)
+
+    collect(resource.get("provision"))
+    return "\n".join(lines)
+
+
+def _consent_verification_summary(resource):
+    lines = []
+    for verification in resource.get("verification") or []:
+        parts = [
+            "verified" if verification.get("verified") else "not verified",
+            _display(verification.get("verifiedWith")),
+            verification.get("verificationDate") or "",
+        ]
+        line = " / ".join(part for part in parts if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _consent_referenced_resources(resource):
+    refs = []
+
+    def collect(provision):
+        if not isinstance(provision, dict):
+            return
+        for data in provision.get("data") or []:
+            reference = data.get("reference")
+            if reference:
+                refs.append(reference)
+        for actor in provision.get("actor") or []:
+            reference = actor.get("reference")
+            if reference:
+                refs.append(reference)
+        for child in provision.get("provision") or []:
+            collect(child)
+
+    collect(resource.get("provision"))
+    return refs
+
+
+def _insurance_plan_contact_summary(resource):
+    lines = []
+    for contact in resource.get("contact") or []:
+        purpose = _codeable_text(contact.get("purpose"))
+        name = _human_name({"name": [contact.get("name") or {}]}) if contact.get("name") else ""
+        telecom = ", ".join(item.get("value") or "" for item in contact.get("telecom") or [] if item.get("value"))
+        line = " / ".join(part for part in [purpose, name, telecom] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _insurance_plan_benefit_summary(resource):
+    lines = []
+    for coverage in resource.get("coverage") or []:
+        coverage_type = _codeable_text(coverage.get("type"))
+        benefits = []
+        for benefit in coverage.get("benefit") or []:
+            benefits.append(_codeable_text(benefit.get("type")))
+        line = " / ".join(part for part in [coverage_type, ", ".join(filter(None, benefits))] if part)
+        if line:
+            lines.append(line)
+    for plan in resource.get("plan") or []:
+        plan_text = _codeable_text(plan.get("type")) or plan.get("name") or ""
+        if plan_text:
+            lines.append(plan_text)
     return "\n".join(lines)
 
 
@@ -2212,6 +2508,60 @@ def _sync_questionnaire_response_relationships(resource, questionnaire_response=
     part_of = resource.get("partOf") or []
     questionnaire_response.part_of_observations.set([obj for obj in (_reference_as(ref, Observation) for ref in part_of) if obj])
     questionnaire_response.part_of_procedures.set([obj for obj in (_reference_as(ref, Procedure) for ref in part_of) if obj])
+
+
+def _sync_coverage_relationships(resource, coverage=None):
+    coverage = coverage or _object_for_resource(resource, "clinical.Coverage")
+    if not coverage:
+        return
+    changed = []
+    for field, value in [
+        ("payor_organization", _reference_as(_first(resource.get("payor")), Organization)),
+        ("policy_holder_patient", _reference_as(resource.get("policyHolder"), PatientProfile)),
+        ("subscriber_patient", _reference_as(resource.get("subscriber"), PatientProfile)),
+    ]:
+        if value and getattr(coverage, f"{field}_id") != value.id:
+            setattr(coverage, field, value)
+            changed.append(field)
+    if changed:
+        coverage.save(update_fields=changed)
+
+
+def _sync_explanation_of_benefit_relationships(resource, explanation_of_benefit=None):
+    explanation_of_benefit = explanation_of_benefit or _object_for_resource(resource, "clinical.ExplanationOfBenefit")
+    if not explanation_of_benefit:
+        return
+    insurance = resource.get("insurance") or []
+    explanation_of_benefit.coverages.set(
+        [obj for obj in (_reference_as(item.get("coverage"), Coverage) for item in insurance) if obj]
+    )
+    encounter_refs = []
+    for item in resource.get("item") or []:
+        encounter_refs.extend(item.get("encounter") or [])
+    explanation_of_benefit.encounters.set(
+        [obj for obj in (_reference_as(ref, Encounter) for ref in encounter_refs) if obj]
+    )
+
+
+def _sync_consent_relationships(resource, consent=None):
+    consent = consent or _object_for_resource(resource, "clinical.Consent")
+    if not consent:
+        return
+    consent.performer_practitioners.set(
+        [obj for obj in (_reference_as(ref, Practitioner) for ref in resource.get("performer") or []) if obj]
+    )
+
+    source_refs = []
+    for key in ("sourceReference",):
+        if resource.get(key):
+            source_refs.append(resource[key])
+    consent.source_documents.set([obj for obj in (_reference_as(ref, ClinicalDocument) for ref in source_refs) if obj])
+
+    referenced = _consent_referenced_resources(resource)
+    consent.related_immunizations.set([obj for obj in (_reference_as(ref, Immunization) for ref in referenced) if obj])
+    consent.questionnaire_responses.set(
+        [obj for obj in (_reference_as(ref, QuestionnaireResponse) for ref in referenced + source_refs) if obj]
+    )
 
 
 def _sync_immunization_recommendation_relationships(resource, immunization_recommendation=None):

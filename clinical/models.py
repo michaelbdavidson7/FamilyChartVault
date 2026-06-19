@@ -2003,6 +2003,130 @@ class ProcedurePerformer(models.Model):
         return str(performer or self.role or f"Performer #{self.pk}")
 
 
+class InsurancePlan(models.Model):
+    """FHIR InsurancePlan: insurer/product/plan definition offered by a payer."""
+
+    owned_by = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="owned_insurance_plans", help_text="FHIR ownedBy: organization that is legally responsible for the plan.")
+    administered_by = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="administered_insurance_plans", help_text="FHIR administeredBy: organization that administers the plan.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    name = models.CharField(max_length=255, help_text="FHIR name: official plan or product name.")
+    alias = models.CharField(max_length=255, blank=True, help_text="FHIR alias: alternate plan names.")
+    plan_type = models.CharField(max_length=255, blank=True, help_text="FHIR type: kind of insurance plan or product.")
+    period_start = models.DateField(null=True, blank=True, help_text="FHIR period.start: when the plan is available or effective.")
+    period_end = models.DateField(null=True, blank=True, help_text="FHIR period.end: when the plan availability/effectiveness ends.")
+    coverage_area = models.TextField(blank=True, help_text="FHIR coverageArea: geographic areas covered by the plan.")
+    contact_summary = models.TextField(blank=True, help_text="FHIR contact/telecom: plan contact details.")
+    benefit_summary = models.TextField(blank=True, help_text="FHIR coverage/plan.specificCost/benefit: summarized benefits and plan cost details.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this insurance plan.")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Insurance Plan"
+        verbose_name_plural = "Insurance Plans"
+
+    def __str__(self):
+        return self.name
+
+
+class Coverage(models.Model):
+    """FHIR Coverage: insurance or self-pay coverage for a specific patient."""
+
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="coverages", help_text="FHIR beneficiary: patient covered by the policy or payment agreement.")
+    insurer_plan = models.ForeignKey(InsurancePlan, on_delete=models.SET_NULL, null=True, blank=True, related_name="coverages", help_text="FHIR insurancePlan extension/reference when resolved locally.")
+    payor_organization = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="coverages_as_payor", help_text="FHIR payor: insurer or organization issuing the coverage.")
+    policy_holder_patient = models.ForeignKey(PatientProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name="held_coverages", help_text="FHIR policyHolder: patient who owns the policy, when applicable.")
+    subscriber_patient = models.ForeignKey(PatientProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name="subscribed_coverages", help_text="FHIR subscriber: patient who subscribed to the policy, when applicable.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: active, cancelled, draft, or entered-in-error.")
+    coverage_type = models.CharField(max_length=255, blank=True, help_text="FHIR type: coverage category such as medical, dental, vision, accident, or self-pay.")
+    subscriber_id = models.CharField(max_length=255, blank=True, help_text="FHIR subscriberId: insurer-assigned subscriber identifier.")
+    dependent = models.CharField(max_length=255, blank=True, help_text="FHIR dependent: dependent number under the coverage.")
+    relationship = models.CharField(max_length=255, blank=True, help_text="FHIR relationship: beneficiary relationship to subscriber.")
+    period_start = models.DateField(null=True, blank=True, help_text="FHIR period.start: coverage start date.")
+    period_end = models.DateField(null=True, blank=True, help_text="FHIR period.end: coverage end date.")
+    order = models.PositiveIntegerField(null=True, blank=True, help_text="FHIR order: relative coordination order for active coverages.")
+    network = models.CharField(max_length=255, blank=True, help_text="FHIR network: insurer-defined network name or identifier.")
+    class_summary = models.TextField(blank=True, help_text="FHIR class: group, plan, subgroup, class, and other insurer classifications.")
+    cost_summary = models.TextField(blank=True, help_text="FHIR costToBeneficiary: copay, deductible, coinsurance, and related patient cost details.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this coverage.")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Coverage"
+        verbose_name_plural = "Coverages"
+
+    def __str__(self):
+        return self.coverage_type or self.subscriber_id or f"Coverage #{self.pk}"
+
+
+class ExplanationOfBenefit(models.Model):
+    """FHIR ExplanationOfBenefit: adjudicated claim, EOB, or payer statement."""
+
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="explanation_of_benefits", help_text="FHIR patient: patient receiving products or services.")
+    insurer = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="explanation_of_benefits", help_text="FHIR insurer: insurer responsible for the benefit statement.")
+    provider_practitioner = models.ForeignKey("Practitioner", on_delete=models.SET_NULL, null=True, blank=True, related_name="explanation_of_benefits", help_text="FHIR provider: practitioner responsible for services when resolved locally.")
+    provider_organization = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="provided_explanation_of_benefits", help_text="FHIR provider: organization responsible for services when resolved locally.")
+    coverages = models.ManyToManyField(Coverage, blank=True, related_name="explanation_of_benefits", help_text="FHIR insurance.coverage: insurance coverages used in adjudication.")
+    encounters = models.ManyToManyField(Encounter, blank=True, related_name="explanation_of_benefits", help_text="FHIR item.encounter: encounters associated with adjudicated line items.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: active, cancelled, draft, or entered-in-error.")
+    eob_type = models.CharField(max_length=255, blank=True, help_text="FHIR type: EOB/claim category such as institutional, oral, pharmacy, professional, or vision.")
+    use = models.CharField(max_length=30, blank=True, help_text="FHIR use: claim, preauthorization, predetermination, or other use.")
+    outcome = models.CharField(max_length=255, blank=True, help_text="FHIR outcome: queued, complete, error, partial, or other adjudication result.")
+    disposition = models.TextField(blank=True, help_text="FHIR disposition: human-readable processing result.")
+    billable_period_start = models.DateField(null=True, blank=True, help_text="FHIR billablePeriod.start: service billing period start.")
+    billable_period_end = models.DateField(null=True, blank=True, help_text="FHIR billablePeriod.end: service billing period end.")
+    created_date = models.DateField(null=True, blank=True, help_text="FHIR created: when the EOB was created.")
+    total_summary = models.TextField(blank=True, help_text="FHIR total: benefit, allowed, submitted, patient responsibility, and payment totals.")
+    diagnosis_summary = models.TextField(blank=True, help_text="FHIR diagnosis: diagnosis sequence, code, and package details.")
+    item_summary = models.TextField(blank=True, help_text="FHIR item: adjudicated service/product line item details.")
+    payment_summary = models.TextField(blank=True, help_text="FHIR payment: payment type, amount, date, and payee details.")
+    notes = models.TextField(blank=True, help_text="FHIR processNote or imported source notes.")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Explanation of Benefit"
+        verbose_name_plural = "Explanations of Benefits"
+
+    def __str__(self):
+        return self.eob_type or self.outcome or f"Explanation of Benefit #{self.pk}"
+
+
+class Consent(models.Model):
+    """FHIR Consent: permission, denial, or consent directive for care, privacy, or procedures."""
+
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="consents", help_text="FHIR patient: patient or person whose consent is described.")
+    organization = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="consents", help_text="FHIR organization: organization that manages or witnesses the consent.")
+    performer_practitioners = models.ManyToManyField("Practitioner", blank=True, related_name="performed_consents", help_text="FHIR performer: practitioners who granted, acknowledged, or witnessed the consent.")
+    source_documents = models.ManyToManyField("documents.ClinicalDocument", blank=True, related_name="consents", help_text="FHIR source[x]: signed or source documents for the consent.")
+    related_immunizations = models.ManyToManyField(Immunization, blank=True, related_name="consents", help_text="Local link: vaccine records associated with this consent when source references can be resolved.")
+    questionnaire_responses = models.ManyToManyField(QuestionnaireResponse, blank=True, related_name="consents", help_text="Local link: questionnaire responses used as consent/intake evidence.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, proposed, active, rejected, inactive, entered-in-error.")
+    scope = models.CharField(max_length=255, blank=True, help_text="FHIR scope: privacy, treatment, research, advance care planning, or other consent scope.")
+    category = models.CharField(max_length=255, blank=True, help_text="FHIR category: consent category such as treatment, information access, or procedure consent.")
+    policy_rule = models.CharField(max_length=255, blank=True, help_text="FHIR policyRule: regulation or policy basis for the consent.")
+    start_date = models.DateTimeField(null=True, blank=True, help_text="FHIR provision.period.start: when consent permission/denial becomes effective.")
+    end_date = models.DateTimeField(null=True, blank=True, help_text="FHIR provision.period.end: when consent permission/denial ends.")
+    decision = models.CharField(max_length=30, blank=True, help_text="FHIR provision.type: permit or deny.")
+    provision_summary = models.TextField(blank=True, help_text="FHIR provision: actors, actions, classes, codes, purposes, and periods.")
+    verification_summary = models.TextField(blank=True, help_text="FHIR verification: verification status, verifier, and verification date.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this consent.")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Consent"
+        verbose_name_plural = "Consents"
+
+    def __str__(self):
+        return self.category or self.scope or f"Consent #{self.pk}"
+
+
 class Organization(models.Model):
     name = models.CharField(max_length=255, help_text="FHIR name: organization name.")
     organization_type = models.CharField(max_length=255, blank=True, help_text="FHIR type: kind of organization, such as provider, department, team, or payer.")

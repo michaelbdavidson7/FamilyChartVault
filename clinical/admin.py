@@ -46,7 +46,11 @@ from .models import (
     BodyStructure,
     Communication,
     CommunicationRequest,
+    Consent,
+    Coverage,
+    ExplanationOfBenefit,
     Flag,
+    InsurancePlan,
     QuestionnaireResponse,
 )
 
@@ -817,6 +821,60 @@ class ProcedureAdmin(admin.ModelAdmin):
     ordering = ("-performed_start",)
     autocomplete_fields = ["patient", "encounter"]
     filter_horizontal = ("care_plans", "service_requests", "conditions")
+
+
+@admin.register(InsurancePlan)
+class InsurancePlanAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "status", "plan_type", "owned_by", "administered_by")
+    list_display_links = ("name",)
+    search_fields = ("name", "alias", "plan_type", "coverage_area", "benefit_summary")
+    list_filter = ("status", "plan_type", "owned_by", "administered_by")
+    ordering = ("name",)
+    autocomplete_fields = ["owned_by", "administered_by"]
+
+
+@admin.register(Coverage)
+class CoverageAdmin(admin.ModelAdmin):
+    list_display = ("id", "coverage_label", "patient", "status", "coverage_type", "payor_organization", "period_start", "period_end")
+    list_display_links = ("coverage_label",)
+    search_fields = ("coverage_type", "subscriber_id", "dependent", "relationship", "network", "class_summary", "notes")
+    list_filter = ("patient", "status", "coverage_type", "payor_organization")
+    ordering = ("patient", "order", "-period_start")
+    autocomplete_fields = ["patient", "insurer_plan", "payor_organization", "policy_holder_patient", "subscriber_patient"]
+
+    @admin.display(description="Coverage", ordering="coverage_type")
+    def coverage_label(self, obj):
+        return obj.coverage_type or obj.subscriber_id or f"Coverage #{obj.pk}"
+
+
+@admin.register(ExplanationOfBenefit)
+class ExplanationOfBenefitAdmin(admin.ModelAdmin):
+    list_display = ("id", "eob_label", "patient", "status", "eob_type", "outcome", "created_date")
+    list_display_links = ("eob_label",)
+    search_fields = ("eob_type", "outcome", "disposition", "total_summary", "diagnosis_summary", "item_summary", "payment_summary")
+    list_filter = ("patient", "status", "eob_type", "outcome", "insurer")
+    ordering = ("-created_date", "-billable_period_start")
+    autocomplete_fields = ["patient", "insurer", "provider_practitioner", "provider_organization"]
+    filter_horizontal = ("coverages", "encounters")
+
+    @admin.display(description="Explanation of benefit", ordering="eob_type")
+    def eob_label(self, obj):
+        return obj.eob_type or obj.outcome or f"Explanation of Benefit #{obj.pk}"
+
+
+@admin.register(Consent)
+class ConsentAdmin(admin.ModelAdmin):
+    list_display = ("id", "consent_label", "patient", "status", "scope", "category", "decision", "start_date", "end_date")
+    list_display_links = ("consent_label",)
+    search_fields = ("scope", "category", "policy_rule", "decision", "provision_summary", "verification_summary", "notes")
+    list_filter = ("patient", "status", "scope", "category", "decision", "organization")
+    ordering = ("-start_date", "-updated_at")
+    autocomplete_fields = ["patient", "organization"]
+    filter_horizontal = ("performer_practitioners", "source_documents", "related_immunizations", "questionnaire_responses")
+
+    @admin.display(description="Consent", ordering="category")
+    def consent_label(self, obj):
+        return obj.category or obj.scope or f"Consent #{obj.pk}"
 
 
 @admin.register(Organization)

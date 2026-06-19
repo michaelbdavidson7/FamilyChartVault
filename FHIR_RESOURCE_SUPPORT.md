@@ -19,6 +19,8 @@ Status legend:
 - `CareTeam` -> `clinical.CareTeam`
 - `ClinicalImpression` -> `clinical.ClinicalImpression`
 - `Condition` -> `clinical.Condition`
+- `Consent` -> `clinical.Consent`
+- `Coverage` -> `clinical.Coverage`
 - `DetectedIssue` -> `clinical.DetectedIssue`
 - `Device` -> `clinical.Device`
 - `DeviceRequest` -> `clinical.DeviceRequest`
@@ -27,12 +29,14 @@ Status legend:
 - `DocumentReference` -> `documents.ClinicalDocument`
 - `Encounter` -> `clinical.Encounter`
 - `EpisodeOfCare` -> `clinical.EpisodeOfCare`
+- `ExplanationOfBenefit` -> `clinical.ExplanationOfBenefit`
 - `FamilyMemberHistory` -> `clinical.FamilyMemberHistory`
 - `Flag` -> `clinical.Flag`
 - `Group` -> `clinical.FHIRGroup`
 - `Goal` -> `clinical.Goal`
 - `Immunization` -> `clinical.Immunization`
 - `ImmunizationRecommendation` -> `clinical.ImmunizationRecommendation`
+- `InsurancePlan` -> `clinical.InsurancePlan`
 - `List` -> `clinical.FHIRList`
 - `Location` -> `clinical.Location`
 - `Medication` -> `clinical.MedicationCatalog`
@@ -87,7 +91,7 @@ Status legend:
 | --- | --- | --- |
 | `Provenance` | Planned | Useful for import/source trust and record history. |
 | `AuditEvent` | Snapshot candidate | Security/system audit event. |
-| `Consent` | Planned | Useful for privacy/consent records. |
+| `Consent` | First-class | Privacy, treatment, procedure, vaccine, and other consent directives. |
 
 ### Documents
 
@@ -231,7 +235,7 @@ Status legend:
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `Coverage` | Planned | Insurance coverage; optional finance/claims area. |
+| `Coverage` | First-class | Insurance coverage, subscriber IDs, payer details, and benefit classifications. |
 | `CoverageEligibilityRequest` | Snapshot candidate | Eligibility request. |
 | `CoverageEligibilityResponse` | Snapshot candidate | Eligibility response. |
 | `EnrollmentRequest` | Snapshot candidate | Enrollment request. |
@@ -260,8 +264,8 @@ Status legend:
 | `ChargeItem` | Planned | Charge line item. |
 | `ChargeItemDefinition` | Snapshot candidate | Charge item definition. |
 | `Contract` | Snapshot candidate | Contract/legal agreement. |
-| `ExplanationOfBenefit` | Planned | EOB/claims summary; useful for personal records. |
-| `InsurancePlan` | Planned | Insurance plan details. |
+| `ExplanationOfBenefit` | First-class | EOB/claims summary; useful for personal records. |
+| `InsurancePlan` | First-class | Insurance plan details. |
 
 ## Specialized
 

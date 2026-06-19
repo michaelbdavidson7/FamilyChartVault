@@ -59,6 +59,10 @@ from clinical.models import (
     Specimen,
     Communication,
     CommunicationRequest,
+    Consent,
+    Coverage,
+    ExplanationOfBenefit,
+    InsurancePlan,
     QuestionnaireResponse,
 )
 from documents.models import ClinicalDocument
@@ -343,6 +347,109 @@ class FHIRImportTests(TestCase):
         self.assertEqual(FHIRList.objects.get().conditions.get().name, "Fever")
         self.assertEqual(QuestionnaireResponse.objects.get().based_on_service_requests.get().name, "Follow up call")
         self.assertEqual(ImmunizationRecommendation.objects.get().supporting_immunizations.get().vaccine_name, "Influenza vaccine")
+
+    def test_imports_insurance_and_consent_resources(self):
+        payload = {
+            "resourceType": "Bundle",
+            "entry": [
+                {"resource": {"resourceType": "Patient", "id": "pat-fin", "name": [{"family": "Rivera", "given": ["Maya"]}]}},
+                {"resource": {"resourceType": "Organization", "id": "payer-1", "name": "Acme Health Plan"}},
+                {
+                    "resource": {
+                        "resourceType": "InsurancePlan",
+                        "id": "plan-1",
+                        "status": "active",
+                        "name": "Acme Gold",
+                        "ownedBy": {"reference": "Organization/payer-1"},
+                        "type": [{"text": "Medical"}],
+                    }
+                },
+                {
+                    "resource": {
+                        "resourceType": "Coverage",
+                        "id": "coverage-1",
+                        "status": "active",
+                        "beneficiary": {"reference": "Patient/pat-fin"},
+                        "payor": [{"reference": "Organization/payer-1"}],
+                        "type": {"text": "Medical"},
+                        "subscriberId": "SUB123",
+                        "period": {"start": "2024-01-01"},
+                        "class": [{"type": {"text": "plan"}, "value": "Gold", "name": "Gold Plan"}],
+                    }
+                },
+                {
+                    "resource": {
+                        "resourceType": "Encounter",
+                        "id": "enc-fin",
+                        "subject": {"reference": "Patient/pat-fin"},
+                        "status": "finished",
+                        "class": {"display": "ambulatory"},
+                    }
+                },
+                {
+                    "resource": {
+                        "resourceType": "ExplanationOfBenefit",
+                        "id": "eob-1",
+                        "status": "active",
+                        "patient": {"reference": "Patient/pat-fin"},
+                        "insurer": {"reference": "Organization/payer-1"},
+                        "provider": {"reference": "Organization/payer-1"},
+                        "type": {"text": "Professional"},
+                        "use": "claim",
+                        "outcome": "complete",
+                        "created": "2024-02-01",
+                        "insurance": [{"coverage": {"reference": "Coverage/coverage-1"}}],
+                        "item": [{"sequence": 1, "encounter": [{"reference": "Encounter/enc-fin"}], "productOrService": {"text": "Office visit"}}],
+                        "total": [{"category": {"text": "Submitted"}, "amount": {"value": 100, "currency": "USD"}}],
+                    }
+                },
+                {
+                    "resource": {
+                        "resourceType": "Immunization",
+                        "id": "imm-consent",
+                        "patient": {"reference": "Patient/pat-fin"},
+                        "vaccineCode": {"text": "Influenza vaccine"},
+                        "occurrenceDateTime": "2024-10-01",
+                    }
+                },
+                {
+                    "resource": {
+                        "resourceType": "QuestionnaireResponse",
+                        "id": "qr-consent",
+                        "subject": {"reference": "Patient/pat-fin"},
+                        "status": "completed",
+                        "questionnaire": "http://example.test/vaccine-consent",
+                    }
+                },
+                {
+                    "resource": {
+                        "resourceType": "Consent",
+                        "id": "consent-1",
+                        "status": "active",
+                        "scope": {"text": "Treatment"},
+                        "category": [{"text": "Vaccine consent"}],
+                        "patient": {"reference": "Patient/pat-fin"},
+                        "organization": [{"reference": "Organization/payer-1"}],
+                        "sourceReference": {"reference": "QuestionnaireResponse/qr-consent"},
+                        "provision": {
+                            "type": "permit",
+                            "period": {"start": "2024-10-01T09:00:00Z"},
+                            "data": [{"reference": {"reference": "Immunization/imm-consent"}}],
+                        },
+                    }
+                },
+            ],
+        }
+
+        result = import_fhir_json(payload)
+
+        self.assertEqual(result.errors, [])
+        self.assertEqual(InsurancePlan.objects.get().owned_by.name, "Acme Health Plan")
+        self.assertEqual(Coverage.objects.get().subscriber_id, "SUB123")
+        self.assertEqual(ExplanationOfBenefit.objects.get().coverages.get(), Coverage.objects.get())
+        self.assertEqual(ExplanationOfBenefit.objects.get().encounters.get(), Encounter.objects.get())
+        self.assertEqual(Consent.objects.get().related_immunizations.get().vaccine_name, "Influenza vaccine")
+        self.assertEqual(Consent.objects.get().questionnaire_responses.get().questionnaire, "http://example.test/vaccine-consent")
 
     def test_reimport_updates_linked_resources(self):
         payload = {

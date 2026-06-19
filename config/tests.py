@@ -67,6 +67,7 @@ class SettingsBackupPageTests(TestCase):
             ("Vitals &amp; Labs", "admin:clinical_observation_changelist"),
             ("Diagnostic Reports", "admin:clinical_diagnosticreport_changelist"),
             ("Flags", "admin:clinical_flag_changelist"),
+            ("Consents", "admin:clinical_consent_changelist"),
             ("Communications", "admin:clinical_communication_changelist"),
             ("Questionnaire Responses", "admin:clinical_questionnaireresponse_changelist"),
             ("FHIR Lists", "admin:clinical_fhirlist_changelist"),
@@ -86,6 +87,9 @@ class SettingsBackupPageTests(TestCase):
             ("Episodes of Care", "admin:clinical_episodeofcare_changelist"),
             ("Procedures", "admin:clinical_procedure_changelist"),
             ("Specimens", "admin:clinical_specimen_changelist"),
+            ("Coverages", "admin:clinical_coverage_changelist"),
+            ("Explanations of Benefits", "admin:clinical_explanationofbenefit_changelist"),
+            ("Insurance Plans", "admin:clinical_insuranceplan_changelist"),
             ("Practitioners", "admin:clinical_practitioner_changelist"),
             ("Practitioner Roles", "admin:clinical_practitionerrole_changelist"),
             ("Organizations", "admin:clinical_organization_changelist"),
@@ -119,7 +123,10 @@ class SettingsBackupPageTests(TestCase):
         self.assertContains(response, "Conditions")
         self.assertContains(response, "Vitals &amp; Labs")
         self.assertContains(response, "Documents")
+        self.assertContains(response, "Coverages")
+        self.assertContains(response, "Consents")
         self.assertContains(response, f"{reverse('admin:clinical_condition_changelist')}?patient__id__exact={patient.pk}")
         self.assertContains(response, f"{reverse('admin:clinical_observation_changelist')}?patient__id__exact={patient.pk}")
         self.assertContains(response, f"{reverse('admin:documents_clinicaldocument_changelist')}?patient__id__exact={patient.pk}")
+        self.assertContains(response, f"{reverse('admin:clinical_coverage_changelist')}?patient__id__exact={patient.pk}")
         self.assertContains(response, "1 record")

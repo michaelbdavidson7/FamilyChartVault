@@ -59,9 +59,12 @@
     [ ] Appointment, AppointmentResponse, Schedule, Slot - scheduling resources; useful if we add appointments/calendar
     [ ] Task - workflow task tracking; useful later for reminders/to-dos/imported tasks
     [ ] Provenance - source/audit provenance; important for trust/history, can attach to snapshots/links
-    [ ] Consent - patient consents/privacy choices
+    [x] Consent - patient consents/privacy choices, including vaccine/procedure consent links when references resolve
     [ ] AuditEvent - security/audit events; probably system-level rather than clinical UI
-    [ ] Coverage, Claim, ClaimResponse, ExplanationOfBenefit, Account, Invoice - financial/insurance resources; optional personal finance/claims area
+    [x] Coverage - insurance coverage, subscriber IDs, payer details, and benefit classifications
+    [x] ExplanationOfBenefit - EOB/claims summary, service lines, adjudication totals, and payment summaries
+    [x] InsurancePlan - payer plan/product definitions and benefit summaries
+    [ ] Claim, ClaimResponse, Account, Invoice - remaining financial/insurance resources; optional personal finance/claims area
     [ ] SupplyRequest and SupplyDelivery - supplies and delivery events
     [ ] MolecularSequence - genetics/genomics; snapshot/generic unless genomics UI is planned
     [ ] ResearchStudy and ResearchSubject - research participation; optional

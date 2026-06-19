@@ -14,7 +14,9 @@ from clinical.models import (
     ClinicalImpression,
     Communication,
     CommunicationRequest,
+    Consent,
     Condition,
+    Coverage,
     DetectedIssue,
     Device,
     DeviceRequest,
@@ -29,6 +31,7 @@ from clinical.models import (
     Goal,
     Immunization,
     ImmunizationRecommendation,
+    InsurancePlan,
     Location,
     Medication,
     MedicationAdministration,
@@ -45,6 +48,7 @@ from clinical.models import (
     RiskAssessment,
     ServiceRequest,
     Specimen,
+    ExplanationOfBenefit,
     QuestionnaireResponse,
 )
 from documents.models import ClinicalDocument
@@ -355,6 +359,14 @@ def clinical_resources_directory(request):
                     "count_label": "record",
                 },
                 {
+                    "title": "Consents",
+                    "description": "Treatment, privacy, procedure, vaccine, and other consent directives.",
+                    "url": reverse("admin:clinical_consent_changelist"),
+                    "icon": "fas fa-file-signature",
+                    "count": Consent.objects.count(),
+                    "count_label": "record",
+                },
+                {
                     "title": "Communications",
                     "description": "Messages or information sent between people, organizations, and patients.",
                     "url": reverse("admin:clinical_communication_changelist"),
@@ -514,6 +526,35 @@ def clinical_resources_directory(request):
             ],
         },
         {
+            "title": "Insurance & Billing",
+            "cards": [
+                {
+                    "title": "Coverages",
+                    "description": "Insurance coverage, subscriber IDs, payer details, and benefit classifications.",
+                    "url": reverse("admin:clinical_coverage_changelist"),
+                    "icon": "fas fa-id-card-alt",
+                    "count": Coverage.objects.count(),
+                    "count_label": "record",
+                },
+                {
+                    "title": "Explanations of Benefits",
+                    "description": "Adjudicated claims, payer statements, service lines, totals, and payments.",
+                    "url": reverse("admin:clinical_explanationofbenefit_changelist"),
+                    "icon": "fas fa-file-invoice-dollar",
+                    "count": ExplanationOfBenefit.objects.count(),
+                    "count_label": "record",
+                },
+                {
+                    "title": "Insurance Plans",
+                    "description": "Payer plan/product definitions, contacts, coverage areas, and benefit summaries.",
+                    "url": reverse("admin:clinical_insuranceplan_changelist"),
+                    "icon": "fas fa-umbrella",
+                    "count": InsurancePlan.objects.count(),
+                    "count_label": "record",
+                },
+            ],
+        },
+        {
             "title": "Directory",
             "cards": [
                 {
@@ -610,6 +651,14 @@ def patient_resources_directory(request, patient_id):
                 card("Family History", FamilyMemberHistory, "clinical_familymemberhistory", "Family member relationships, conditions, and outcomes.", "fas fa-people-arrows"),
                 card("Body Structures", BodyStructure, "clinical_bodystructure", "Anatomical locations, morphology, and body-site detail.", "fas fa-diagnoses"),
                 card("Flags", Flag, "clinical_flag", "Patient alerts, warnings, and awareness notes.", "fas fa-flag"),
+                card("Consents", Consent, "clinical_consent", "Treatment, privacy, vaccine, and other consent records.", "fas fa-file-signature"),
+            ],
+        },
+        {
+            "title": "Insurance & Billing",
+            "cards": [
+                card("Coverages", Coverage, "clinical_coverage", "Insurance coverage, subscriber IDs, payer details, and benefit classifications.", "fas fa-id-card-alt"),
+                card("Explanations of Benefits", ExplanationOfBenefit, "clinical_explanationofbenefit", "Adjudicated claims, payer statements, totals, and payments.", "fas fa-file-invoice-dollar"),
             ],
         },
         {
