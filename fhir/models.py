@@ -3,6 +3,15 @@ from patients.models import PatientProfile
 
 
 class FHIRResourceSnapshot(models.Model):
+    IMPORT_STATUS_IMPORTED = "imported"
+    IMPORT_STATUS_SNAPSHOT_ONLY = "snapshot_only"
+    IMPORT_STATUS_INVALID = "invalid"
+    IMPORT_STATUS_CHOICES = [
+        (IMPORT_STATUS_IMPORTED, "Imported"),
+        (IMPORT_STATUS_SNAPSHOT_ONLY, "Snapshot only"),
+        (IMPORT_STATUS_INVALID, "Invalid"),
+    ]
+
     patient = models.ForeignKey(
         PatientProfile,
         on_delete=models.CASCADE,
@@ -21,6 +30,11 @@ class FHIRResourceSnapshot(models.Model):
     raw_json = models.JSONField()
     checksum = models.CharField(max_length=128, blank=True)
 
+    import_status = models.CharField(
+        max_length=30,
+        choices=IMPORT_STATUS_CHOICES,
+        default=IMPORT_STATUS_IMPORTED,
+    )
     is_valid = models.BooleanField(default=True)
     validation_errors = models.JSONField(default=list, blank=True)
 

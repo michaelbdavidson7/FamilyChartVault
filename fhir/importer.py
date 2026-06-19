@@ -127,12 +127,26 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
             patient = _resolve_patient(resource, patient_by_reference, default_patient=target_patient)
             if resource_type not in SUPPORTED_RESOURCE_TYPES:
                 result.unsupported += 1
-                _snapshot(resource, patient, source, result, is_valid=False, errors=["Unsupported resource type."])
+                _snapshot(
+                    resource,
+                    patient,
+                    source,
+                    result,
+                    import_status=FHIRResourceSnapshot.IMPORT_STATUS_SNAPSHOT_ONLY,
+                )
                 continue
 
             if not patient and resource_type not in PATIENTLESS_RESOURCE_TYPES:
                 result.errors.append(f"{_resource_label(resource)} could not be linked to a patient.")
-                _snapshot(resource, None, source, result, is_valid=False, errors=["Missing or unknown patient reference."])
+                _snapshot(
+                    resource,
+                    None,
+                    source,
+                    result,
+                    is_valid=False,
+                    import_status=FHIRResourceSnapshot.IMPORT_STATUS_INVALID,
+                    errors=["Missing or unknown patient reference."],
+                )
                 continue
 
             importer = {
@@ -774,7 +788,7 @@ def _link(resource, patient, django_model, object_id, direction):
     link.save()
 
 
-def _snapshot(resource, patient, source, result, is_valid=True, errors=None):
+def _snapshot(resource, patient, source, result, is_valid=True, import_status=None, errors=None):
     FHIRResourceSnapshot.objects.create(
         patient=patient,
         resource_type=resource.get("resourceType", ""),
@@ -783,6 +797,7 @@ def _snapshot(resource, patient, source, result, is_valid=True, errors=None):
         source=source,
         raw_json=resource,
         checksum=_checksum(resource),
+        import_status=import_status or FHIRResourceSnapshot.IMPORT_STATUS_IMPORTED,
         is_valid=is_valid,
         validation_errors=errors or [],
     )

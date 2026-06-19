@@ -4,6 +4,13 @@
 [ ] decide release-build DEBUG behavior without breaking bundled admin/static assets
 [ ] export quick card for medications, allergies, and conditions 
 [ ] create a full paramedic view
+[ ] improve FHIR snapshot retention and import history
+    [ ] do not create a duplicate FHIRResourceSnapshot when resource_type/resource_id/source/checksum are unchanged
+    [ ] still create a new snapshot when the raw FHIR checksum changes
+    [ ] add an ImportBatch model for each upload/import run
+    [ ] link snapshots to ImportBatch so repeated imports can be audited without duplicating identical JSON forever
+    [ ] add admin summary for import batches: created/updated/snapshot-only/invalid counts
+    [ ] add cleanup/compaction action for duplicate historical snapshots created during development imports
 [ ] add more FHIR resources
     [x] CarePlan - care plans with condition/care-team relationships
     [x] Procedure - high priority; patient-facing care history such as surgeries, imaging procedures, treatments, and completed actions
@@ -15,6 +22,51 @@
     [x] Device - lower-medium priority; implanted devices, medical equipment, and patient devices
     [ ] Binary - seen in older invalid snapshots; decide whether to import as document attachments or keep as snapshots
     [ ] Medication - seen in older invalid snapshots; decide whether to map to medication catalog/details or keep using MedicationRequest/MedicationStatement only
+    [ ] ImagingStudy - imaging studies/series/instances; link to DiagnosticReport, Encounter, Procedure, and Media where possible
+    [ ] Media - clinical photos, imaging key images, waveforms, or other captured media; link to Patient/Encounter/Procedure
+    [ ] Goal - patient/care-team goals; link to CarePlan, Conditions, and lifecycle status
+    [ ] RiskAssessment - risk predictions and probabilities; link to Conditions/Observations/Encounter
+    [ ] ClinicalImpression - clinician assessment/synthesis; link to findings, problems, investigations, and plans
+    [ ] FamilyMemberHistory - family history conditions and relationships
+    [ ] AdverseEvent - harmful events and contributing products/substances/procedures
+    [ ] DetectedIssue - clinical safety/quality issues such as drug interactions or duplicate therapy
+    [ ] BodyStructure - body site details used by Procedure, Observation, ImagingStudy, etc.
+    [ ] MedicationAdministration - administered meds; distinct from medication orders/statements
+    [ ] MedicationDispense - dispensed meds; pharmacy/supply event distinct from orders/statements
+    [ ] DeviceRequest - orders/requests for devices
+    [ ] DeviceUseStatement - patient/device usage history
+    [ ] NutritionOrder - dietary/oral/enteral/supplement orders; likely pairs with dietary component
+    [ ] MedicationKnowledge - drug knowledge/catalog metadata; probably snapshot/generic first, first-class later only if needed
+    [ ] Medication-related definitional resources - MedicinalProduct*, Substance*, MedicationKnowledge; probably snapshot/generic unless building a medication knowledge base
+    [ ] ImmunizationEvaluation - immunization validity/status evaluation
+    [ ] ImmunizationRecommendation - vaccine forecast/recommendations
+    [ ] QuestionnaireResponse - patient-entered forms and assessments
+    [ ] Questionnaire - form definitions for QuestionnaireResponse
+    [ ] Communication - messages/communications about care
+    [ ] CommunicationRequest - requested communications
+    [ ] RequestGroup - grouped/conditional requests and plans
+    [ ] GuidanceResponse - decision-support output
+    [ ] Flag - warnings/alerts on patient records
+    [ ] List - FHIR lists/groupings of clinical resources
+    [ ] Composition - structured clinical documents; may map to ClinicalDocument or document sections
+    [ ] DocumentManifest - document package/index; link to ClinicalDocument/DocumentReference
+    [ ] RelatedPerson - caregivers/family/proxies related to patient
+    [ ] Person - cross-resource person identity; probably snapshot/generic unless identity reconciliation is needed
+    [ ] Group - patient/care cohorts; likely snapshot/generic for personal EMR
+    [ ] HealthcareService - services offered by organizations/locations
+    [ ] Endpoint - technical service endpoints; likely directory/interop support
+    [ ] OrganizationAffiliation - relationships between organizations and services
+    [ ] Appointment, AppointmentResponse, Schedule, Slot - scheduling resources; useful if we add appointments/calendar
+    [ ] Task - workflow task tracking; useful later for reminders/to-dos/imported tasks
+    [ ] Provenance - source/audit provenance; important for trust/history, can attach to snapshots/links
+    [ ] Consent - patient consents/privacy choices
+    [ ] AuditEvent - security/audit events; probably system-level rather than clinical UI
+    [ ] Coverage, Claim, ClaimResponse, ExplanationOfBenefit, Account, Invoice - financial/insurance resources; optional personal finance/claims area
+    [ ] SupplyRequest and SupplyDelivery - supplies and delivery events
+    [ ] MolecularSequence - genetics/genomics; snapshot/generic unless genomics UI is planned
+    [ ] ResearchStudy and ResearchSubject - research participation; optional
+    [x] Generic FHIR resource fallback - accept every FHIR resourceType into valid FHIRResourceSnapshot even when no first-class model exists
+    [ ] Unsupported-resource dashboard - show resource types/counts imported only as snapshots, with "promote to model later" notes
     [ ] AllergyIntolerance orphan strategy - parser exists, but sample allergies reference patient IDs missing from Patient.000.ndjson
     [ ] CareTeam sample coverage - importer exists, but the development sample zip has no CareTeam resources
 [ ] add relationships between imported resources

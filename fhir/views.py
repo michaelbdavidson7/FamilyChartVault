@@ -70,7 +70,7 @@ def import_fhir_data(request):
                 (
                     f"FHIR import complete: {result.created} created, "
                     f"{result.updated} updated, {result.snapshots} snapshots saved, "
-                    f"{result.unsupported} unsupported resources skipped."
+                    f"{result.unsupported} unsupported resources preserved as snapshots."
                 ),
             )
             if backup_path:

@@ -8,6 +8,7 @@ class FHIRResourceSnapshotAdmin(admin.ModelAdmin):
         "id",
         "resource_label",
         "source",
+        "import_status",
         "is_valid",
         "created_at",
     )
@@ -21,12 +22,14 @@ class FHIRResourceSnapshotAdmin(admin.ModelAdmin):
     list_filter = (
         "patient",
         "resource_type",
+        "import_status",
         "source",
         "is_valid",
     )
 
     readonly_fields = (
         "created_at",
+        "import_status",
         "raw_json",
         "validation_errors",
     )

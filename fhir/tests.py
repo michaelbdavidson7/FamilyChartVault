@@ -868,7 +868,29 @@ class FHIRImportTests(TestCase):
         self.assertEqual(len(result.errors), 1)
         snapshot = FHIRResourceSnapshot.objects.get()
         self.assertFalse(snapshot.is_valid)
+        self.assertEqual(snapshot.import_status, FHIRResourceSnapshot.IMPORT_STATUS_INVALID)
         self.assertEqual(snapshot.validation_errors, ["Missing or unknown patient reference."])
+
+    def test_unsupported_resource_is_preserved_as_valid_snapshot_only(self):
+        result = import_fhir_json(
+            {
+                "resourceType": "DiagnosticReport",
+                "id": "report-1",
+                "status": "final",
+                "subject": {"reference": "Patient/missing"},
+                "code": {"text": "Lab report"},
+            }
+        )
+
+        self.assertEqual(result.created, 0)
+        self.assertEqual(result.updated, 0)
+        self.assertEqual(result.unsupported, 1)
+        self.assertEqual(result.errors, [])
+        snapshot = FHIRResourceSnapshot.objects.get()
+        self.assertTrue(snapshot.is_valid)
+        self.assertEqual(snapshot.import_status, FHIRResourceSnapshot.IMPORT_STATUS_SNAPSHOT_ONLY)
+        self.assertEqual(snapshot.validation_errors, [])
+        self.assertEqual(snapshot.resource_type, "DiagnosticReport")
 
     def test_loads_fhir_json_rejects_invalid_json(self):
         with self.assertRaises(ValueError):
