@@ -1,6 +1,13 @@
 from django.db import models
 from patients.models import PatientProfile
 
+# Models are grouped by broad FHIR/workflow area. The ordering is intentionally
+# conservative so historical migrations do not churn just to make this file prettier.
+
+# =============================================================================
+# Core Clinical Records
+# Problems, allergies, medications, immunizations, observations, specimens, visits, and devices.
+# =============================================================================
 
 class Condition(models.Model):
     patient = models.ForeignKey(
@@ -37,7 +44,7 @@ class Allergy(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         verbose_name_plural = "Allergies"
 
@@ -216,6 +223,11 @@ class Device(models.Model):
     def __str__(self):
         return self.display_name
 
+
+# =============================================================================
+# Care Planning And Coordination
+# Care teams, care plans, family history, impressions, reports, detected issues, and related assessment resources.
+# =============================================================================
 
 class CareTeam(models.Model):
     patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="care_teams", help_text="FHIR subject: patient whose care team this is.")
@@ -704,6 +716,11 @@ class DetectedIssue(models.Model):
         return self.code or self.detail or f"Detected Issue #{self.pk}"
 
 
+# =============================================================================
+# People And Groups
+# FHIR Person, RelatedPerson, and Group identity/relationship resources.
+# =============================================================================
+
 class Person(models.Model):
     """FHIR Person: shared demographics and identity links across patient/practitioner/related-person roles."""
 
@@ -964,6 +981,11 @@ class FHIRGroupMember(models.Model):
         )
         return str(member or self.entity_reference or f"Group Member #{self.pk}")
 
+
+# =============================================================================
+# Assessment, Goals, And Requests
+# Body structures, risk assessments, goals, device requests/use, and patient-facing care requests.
+# =============================================================================
 
 class BodyStructure(models.Model):
     """FHIR BodyStructure: anatomical location or structure relevant to care."""
@@ -1255,6 +1277,11 @@ class DeviceUseStatement(models.Model):
         return str(self.device or f"Device Use Statement #{self.pk}")
 
 
+# =============================================================================
+# Medication, Nutrition, Communication, And Lists
+# Medication catalog/activity resources plus nutrition orders, communications, flags, lists, and questionnaires.
+# =============================================================================
+
 class MedicationCatalog(models.Model):
     """FHIR Medication: medication definition/catalog details used by orders, statements, dispenses, and administrations."""
 
@@ -1545,6 +1572,11 @@ class ImmunizationRecommendation(models.Model):
     def __str__(self):
         return self.vaccine_code or self.target_disease or f"Immunization Recommendation #{self.pk}"
 
+
+# =============================================================================
+# Care Directory And Clinical Activity
+# Practitioner roles, service requests, episodes, adverse events, participants, practitioners, and procedures.
+# =============================================================================
 
 class PractitionerRole(models.Model):
     practitioner = models.ForeignKey(
@@ -2003,6 +2035,11 @@ class ProcedurePerformer(models.Model):
         return str(performer or self.role or f"Performer #{self.pk}")
 
 
+# =============================================================================
+# Insurance, Benefits, And Consent
+# Insurance plans, coverages, EOBs, consents, eligibility, enrollment, payment notices, and reconciliation.
+# =============================================================================
+
 class InsurancePlan(models.Model):
     """FHIR InsurancePlan: insurer/product/plan definition offered by a payer."""
 
@@ -2126,6 +2163,11 @@ class Consent(models.Model):
     def __str__(self):
         return self.category or self.scope or f"Consent #{self.pk}"
 
+
+# =============================================================================
+# Media, Documents, Infrastructure, And Scheduling
+# Media/imaging/genomics, document/security infrastructure, endpoint/service definitions, scheduling, tasks, and audit records.
+# =============================================================================
 
 class Media(models.Model):
     """FHIR Media: clinical photo, video, audio, or imaging attachment metadata."""
@@ -2693,6 +2735,11 @@ class AuditEvent(models.Model):
     def __str__(self):
         return self.audit_type or self.action or f"Audit Event #{self.pk}"
 
+# =============================================================================
+# Billing And Research
+# Accounts, claims, invoices, charge items, and research resources.
+# =============================================================================
+
 class Account(models.Model):
     patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, null=True, blank=True, related_name="accounts", help_text="FHIR subject: patient or other party the account tracks.")
     owner = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="owned_accounts", help_text="FHIR owner: organization responsible for tracking the account.")
@@ -2839,6 +2886,11 @@ class ResearchSubject(models.Model):
         return self.assigned_arm or self.status or f"Research Subject #{self.pk}"
 
 
+# =============================================================================
+# Definitions, Catalogs, Quality, And Testing
+# FHIR definitional artifacts, terminology, quality reporting, testing, implementation metadata, and knowledge resources.
+# =============================================================================
+
 class DeviceDefinition(models.Model):
     manufacturer = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="device_definitions", help_text="FHIR manufacturer[x]: organization responsible for the device definition.")
     device_name = models.CharField(max_length=255, blank=True, help_text="FHIR deviceName.name: device name.")
@@ -2894,6 +2946,600 @@ class Questionnaire(models.Model):
     def __str__(self):
         return self.title
 
+
+class Measure(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for the measure.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the measure.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly measure name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly measure title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for the measure.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language measure description.")
+    scoring = models.CharField(max_length=255, blank=True, help_text="FHIR scoring: proportion, ratio, continuous-variable, cohort, etc.")
+    measure_type = models.CharField(max_length=255, blank=True, help_text="FHIR type: process, outcome, structure, patient-reported-outcome, etc.")
+    group_summary = models.TextField(blank=True, help_text="FHIR group: populations, stratifiers, and supplemental data.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this measure.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class MeasureReport(models.Model):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, null=True, blank=True, related_name="measure_reports", help_text="FHIR subject: patient associated with the measure report when present.")
+    measure = models.ForeignKey(Measure, on_delete=models.SET_NULL, null=True, blank=True, related_name="reports", help_text="FHIR measure: measure this report is for when locally resolvable.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: complete, pending, or error.")
+    report_type = models.CharField(max_length=30, blank=True, help_text="FHIR type: individual, subject-list, summary, or data-collection.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: when the report was generated.")
+    period_start = models.DateField(null=True, blank=True, help_text="FHIR period.start: reporting period start.")
+    period_end = models.DateField(null=True, blank=True, help_text="FHIR period.end: reporting period end.")
+    improvement_notation = models.CharField(max_length=255, blank=True, help_text="FHIR improvementNotation: how improvement is calculated.")
+    group_summary = models.TextField(blank=True, help_text="FHIR group: measure score, populations, and stratifiers.")
+    evaluated_resource_summary = models.TextField(blank=True, help_text="FHIR evaluatedResource: resources included in evaluation.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this measure report.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.measure.title if self.measure else f"Measure Report #{self.pk}"
+
+
+class TestScript(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this test script.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the test script.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly test script name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly test script title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for publication.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: test script description.")
+    fixture_summary = models.TextField(blank=True, help_text="FHIR fixture: fixtures used by this script.")
+    test_summary = models.TextField(blank=True, help_text="FHIR setup/test/teardown: summarized test actions and assertions.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this test script.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class TestReport(models.Model):
+    test_script = models.ForeignKey(TestScript, on_delete=models.SET_NULL, null=True, blank=True, related_name="reports", help_text="FHIR testScript: test script this report executed.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: report name.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: completed, in-progress, waiting, stopped, or entered-in-error.")
+    result = models.CharField(max_length=30, blank=True, help_text="FHIR result: pass, fail, or pending.")
+    score = models.DecimalField(max_digits=8, decimal_places=3, null=True, blank=True, help_text="FHIR score: overall test score.")
+    tester = models.CharField(max_length=255, blank=True, help_text="FHIR tester: name of the tester.")
+    issued = models.DateTimeField(null=True, blank=True, help_text="FHIR issued: when report was generated.")
+    participant_summary = models.TextField(blank=True, help_text="FHIR participant: servers/clients involved in the test.")
+    action_summary = models.TextField(blank=True, help_text="FHIR setup/test/teardown.action: action results.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this test report.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name or self.result or f"Test Report #{self.pk}"
+
+
+class CoverageEligibilityRequest(models.Model):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, null=True, blank=True, related_name="coverage_eligibility_requests", help_text="FHIR patient: patient whose coverage eligibility is being requested.")
+    insurer = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="coverage_eligibility_requests_as_insurer", help_text="FHIR insurer: target insurer for eligibility request.")
+    provider_organization = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="coverage_eligibility_requests_as_provider", help_text="FHIR provider: organization making the request.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: active, cancelled, draft, or entered-in-error.")
+    priority = models.CharField(max_length=255, blank=True, help_text="FHIR priority: desired processing priority.")
+    purpose = models.CharField(max_length=255, blank=True, help_text="FHIR purpose: auth-requirements, benefits, discovery, validation.")
+    created_date = models.DateField(null=True, blank=True, help_text="FHIR created: request creation date.")
+    serviced_start = models.DateField(null=True, blank=True, help_text="FHIR serviced[x]: service date or period start.")
+    serviced_end = models.DateField(null=True, blank=True, help_text="FHIR servicedPeriod.end: service period end.")
+    insurance_summary = models.TextField(blank=True, help_text="FHIR insurance: coverages included in the request.")
+    item_summary = models.TextField(blank=True, help_text="FHIR item: eligibility request items.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this eligibility request.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.purpose or f"Coverage Eligibility Request #{self.pk}"
+
+
+class CoverageEligibilityResponse(models.Model):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, null=True, blank=True, related_name="coverage_eligibility_responses", help_text="FHIR patient: patient whose coverage eligibility was evaluated.")
+    request = models.ForeignKey(CoverageEligibilityRequest, on_delete=models.SET_NULL, null=True, blank=True, related_name="responses", help_text="FHIR request: eligibility request being answered.")
+    insurer = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="coverage_eligibility_responses", help_text="FHIR insurer: party responsible for response.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: active, cancelled, draft, or entered-in-error.")
+    purpose = models.CharField(max_length=255, blank=True, help_text="FHIR purpose: auth-requirements, benefits, discovery, validation.")
+    outcome = models.CharField(max_length=30, blank=True, help_text="FHIR outcome: queued, complete, error, or partial.")
+    disposition = models.TextField(blank=True, help_text="FHIR disposition: disposition message.")
+    created_date = models.DateField(null=True, blank=True, help_text="FHIR created: response creation date.")
+    insurance_summary = models.TextField(blank=True, help_text="FHIR insurance: benefits and eligibility details.")
+    error_summary = models.TextField(blank=True, help_text="FHIR error: processing errors.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this eligibility response.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.outcome or self.purpose or f"Coverage Eligibility Response #{self.pk}"
+
+
+class EnrollmentRequest(models.Model):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, null=True, blank=True, related_name="enrollment_requests", help_text="FHIR candidate: person to be enrolled when patient-resolvable.")
+    insurer = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="enrollment_requests_as_insurer", help_text="FHIR insurer: target insurer.")
+    provider = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="enrollment_requests_as_provider", help_text="FHIR provider: organization submitting enrollment.")
+    coverage = models.ForeignKey("Coverage", on_delete=models.SET_NULL, null=True, blank=True, related_name="enrollment_requests", help_text="FHIR coverage: coverage to enroll.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: active, cancelled, draft, or entered-in-error.")
+    created_date = models.DateField(null=True, blank=True, help_text="FHIR created: request creation date.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this enrollment request.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.status or f"Enrollment Request #{self.pk}"
+
+
+class EnrollmentResponse(models.Model):
+    request = models.ForeignKey(EnrollmentRequest, on_delete=models.SET_NULL, null=True, blank=True, related_name="responses", help_text="FHIR request: enrollment request being answered.")
+    organization = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="enrollment_responses", help_text="FHIR organization: organization responding.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: active, cancelled, draft, or entered-in-error.")
+    outcome = models.CharField(max_length=30, blank=True, help_text="FHIR outcome: queued, complete, error, or partial.")
+    disposition = models.TextField(blank=True, help_text="FHIR disposition: disposition message.")
+    created_date = models.DateField(null=True, blank=True, help_text="FHIR created: response creation date.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this enrollment response.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.outcome or self.status or f"Enrollment Response #{self.pk}"
+
+
+class PaymentNotice(models.Model):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, null=True, blank=True, related_name="payment_notices", help_text="Local patient association when payment references patient data.")
+    recipient = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="payment_notices", help_text="FHIR recipient: party notified about payment.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: active, cancelled, draft, or entered-in-error.")
+    payment_status = models.CharField(max_length=255, blank=True, help_text="FHIR paymentStatus: status of the payment.")
+    created_date = models.DateField(null=True, blank=True, help_text="FHIR created: notice creation date.")
+    payment_date = models.DateField(null=True, blank=True, help_text="FHIR paymentDate: expected or actual payment date.")
+    amount = models.CharField(max_length=255, blank=True, help_text="FHIR amount: payment amount.")
+    request_summary = models.CharField(max_length=255, blank=True, help_text="FHIR request: request reference this notice relates to.")
+    response_summary = models.CharField(max_length=255, blank=True, help_text="FHIR response: response reference this notice relates to.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this payment notice.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.payment_status or self.amount or f"Payment Notice #{self.pk}"
+
+
+class PaymentReconciliation(models.Model):
+    payment_issuer = models.ForeignKey("Organization", on_delete=models.SET_NULL, null=True, blank=True, related_name="payment_reconciliations", help_text="FHIR paymentIssuer: organization issuing payment.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: active, cancelled, draft, or entered-in-error.")
+    outcome = models.CharField(max_length=30, blank=True, help_text="FHIR outcome: queued, complete, error, or partial.")
+    disposition = models.TextField(blank=True, help_text="FHIR disposition: disposition message.")
+    created_date = models.DateField(null=True, blank=True, help_text="FHIR created: reconciliation creation date.")
+    payment_date = models.DateField(null=True, blank=True, help_text="FHIR paymentDate: date of payment.")
+    payment_amount = models.CharField(max_length=255, blank=True, help_text="FHIR paymentAmount: amount paid.")
+    detail_summary = models.TextField(blank=True, help_text="FHIR detail: payment allocation details.")
+    process_note_summary = models.TextField(blank=True, help_text="FHIR processNote: processing notes.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this payment reconciliation.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.payment_amount or self.outcome or f"Payment Reconciliation #{self.pk}"
+
+
+class CodeSystem(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this code system.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the code system.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly code system name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly code system title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this code system.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language description of the code system.")
+    content = models.CharField(max_length=30, blank=True, help_text="FHIR content: not-present, example, fragment, complete, or supplement.")
+    case_sensitive = models.BooleanField(null=True, blank=True, help_text="FHIR caseSensitive: whether code comparison is case sensitive.")
+    hierarchy_meaning = models.CharField(max_length=50, blank=True, help_text="FHIR hierarchyMeaning: meaning of parent/child concept relationships.")
+    concept_summary = models.TextField(blank=True, help_text="FHIR concept: summarized code system concepts.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this code system.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class ValueSet(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this value set.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the value set.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly value set name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly value set title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this value set.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language description of the value set.")
+    immutable = models.BooleanField(null=True, blank=True, help_text="FHIR immutable: whether the value set definition may not change.")
+    compose_summary = models.TextField(blank=True, help_text="FHIR compose: include/exclude rules used to define the value set.")
+    expansion_summary = models.TextField(blank=True, help_text="FHIR expansion: expanded codes when included in the resource.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this value set.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class ConceptMap(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this concept map.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the concept map.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly concept map name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly concept map title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this concept map.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language description of the concept map.")
+    source_uri = models.CharField(max_length=500, blank=True, help_text="FHIR source[x]: source value set or structure map context.")
+    target_uri = models.CharField(max_length=500, blank=True, help_text="FHIR target[x]: target value set or structure map context.")
+    group_summary = models.TextField(blank=True, help_text="FHIR group: concept mappings and equivalence details.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this concept map.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Library(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this library.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the library.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly library name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly library title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this library.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language description of the library.")
+    library_type = models.CharField(max_length=255, blank=True, help_text="FHIR type: logic-library, model-definition, asset-collection, module-definition, or related type.")
+    subject = models.CharField(max_length=255, blank=True, help_text="FHIR subject[x]: intended subject for the library.")
+    related_artifact_summary = models.TextField(blank=True, help_text="FHIR relatedArtifact: citations, dependencies, composed-of, and derived-from links.")
+    content_summary = models.TextField(blank=True, help_text="FHIR content: attachments containing library logic or related files.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this library.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class PlanDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this plan definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the plan definition.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly plan definition name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly plan definition title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this plan definition.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language description of the plan definition.")
+    plan_type = models.CharField(max_length=255, blank=True, help_text="FHIR type: order-set, clinical-protocol, eca-rule, workflow-definition, or other plan type.")
+    subject = models.CharField(max_length=255, blank=True, help_text="FHIR subject[x]: intended subject for the plan definition.")
+    goal_summary = models.TextField(blank=True, help_text="FHIR goal: goals this plan definition supports.")
+    action_summary = models.TextField(blank=True, help_text="FHIR action: actions, triggers, conditions, inputs, and outputs.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this plan definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class CapabilityStatement(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this capability statement.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the capability statement.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly capability statement name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly capability statement title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language description of the capability statement.")
+    kind = models.CharField(max_length=30, blank=True, help_text="FHIR kind: instance, capability, or requirements.")
+    fhir_version = models.CharField(max_length=30, blank=True, help_text="FHIR fhirVersion: FHIR version supported.")
+    format_summary = models.TextField(blank=True, help_text="FHIR format/patchFormat: supported data formats.")
+    rest_summary = models.TextField(blank=True, help_text="FHIR rest: RESTful capabilities and interactions.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this capability statement.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class StructureDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this structure definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the structure definition.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly structure definition name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly structure definition title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language profile/extension description.")
+    kind = models.CharField(max_length=50, blank=True, help_text="FHIR kind: primitive-type, complex-type, resource, or logical.")
+    abstract = models.BooleanField(null=True, blank=True, help_text="FHIR abstract: whether this structure is abstract.")
+    type_code = models.CharField(max_length=255, blank=True, help_text="FHIR type: constrained FHIR type/resource.")
+    base_definition = models.CharField(max_length=500, blank=True, help_text="FHIR baseDefinition: base structure this definition constrains.")
+    derivation = models.CharField(max_length=30, blank=True, help_text="FHIR derivation: specialization or constraint.")
+    element_summary = models.TextField(blank=True, help_text="FHIR snapshot/differential: summarized element definitions.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this structure definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class ImplementationGuide(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this implementation guide.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the implementation guide.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly implementation guide name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly implementation guide title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language implementation guide description.")
+    package_id = models.CharField(max_length=255, blank=True, help_text="FHIR packageId: NPM package id for this guide.")
+    fhir_version_summary = models.CharField(max_length=255, blank=True, help_text="FHIR fhirVersion: FHIR versions this guide targets.")
+    definition_summary = models.TextField(blank=True, help_text="FHIR definition: grouped resources, pages, parameters, and templates.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this implementation guide.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class SearchParameter(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this search parameter.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the search parameter.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly search parameter name.")
+    title = models.CharField(max_length=255, help_text="FHIR title/name: human-friendly search parameter label.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: search parameter purpose and behavior.")
+    code = models.CharField(max_length=255, blank=True, help_text="FHIR code: code used in search URLs.")
+    base_summary = models.CharField(max_length=500, blank=True, help_text="FHIR base: resource types this search parameter applies to.")
+    search_type = models.CharField(max_length=50, blank=True, help_text="FHIR type: number, date, string, token, reference, composite, quantity, uri, or special.")
+    expression = models.TextField(blank=True, help_text="FHIR expression: FHIRPath expression over the resource.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this search parameter.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class MessageDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this message definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the message definition.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly message definition name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly message definition title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: message definition behavior and use.")
+    event = models.CharField(max_length=255, blank=True, help_text="FHIR event[x]: event code or canonical event definition.")
+    category = models.CharField(max_length=30, blank=True, help_text="FHIR category: consequence, currency, or notification.")
+    response_required = models.CharField(max_length=30, blank=True, help_text="FHIR responseRequired: always, on-error, never, or on-success.")
+    focus_summary = models.TextField(blank=True, help_text="FHIR focus: resources that must be present in messages.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this message definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class OperationDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this operation definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the operation definition.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly operation definition name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly operation definition title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: operation or named query behavior.")
+    kind = models.CharField(max_length=30, blank=True, help_text="FHIR kind: operation or query.")
+    code = models.CharField(max_length=255, blank=True, help_text="FHIR code: name used to invoke the operation.")
+    resource_summary = models.CharField(max_length=500, blank=True, help_text="FHIR resource: resource types this operation applies to.")
+    system = models.BooleanField(default=False, help_text="FHIR system: whether operation can be invoked at system level.")
+    type_level = models.BooleanField(default=False, help_text="FHIR type: whether operation can be invoked at resource type level.")
+    instance = models.BooleanField(default=False, help_text="FHIR instance: whether operation can be invoked at instance level.")
+    parameter_summary = models.TextField(blank=True, help_text="FHIR parameter: operation input/output parameters.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this operation definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class CompartmentDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this compartment definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the compartment definition.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly compartment definition name.")
+    title = models.CharField(max_length=255, help_text="FHIR name/title: human-friendly compartment label.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: compartment definition description.")
+    code = models.CharField(max_length=50, blank=True, help_text="FHIR code: Patient, Encounter, RelatedPerson, Practitioner, or Device.")
+    search = models.BooleanField(default=False, help_text="FHIR search: whether compartment can be used for search.")
+    resource_summary = models.TextField(blank=True, help_text="FHIR resource: resources and search parameters included in this compartment.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this compartment definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class StructureMap(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this structure map.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the structure map.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly structure map name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly structure map title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: structure mapping description.")
+    structure_summary = models.TextField(blank=True, help_text="FHIR structure: source/target structures used by this map.")
+    group_summary = models.TextField(blank=True, help_text="FHIR group: transformation groups and rules.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this structure map.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class GraphDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this graph definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the graph definition.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly graph definition name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly graph definition title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: graph traversal description.")
+    start = models.CharField(max_length=255, blank=True, help_text="FHIR start: resource type where the graph starts.")
+    profile = models.CharField(max_length=500, blank=True, help_text="FHIR profile: profile that describes graph instances.")
+    link_summary = models.TextField(blank=True, help_text="FHIR link: graph traversal links and target resources.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this graph definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class ExampleScenario(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this example scenario.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the example scenario.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly example scenario name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly example scenario title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: example scenario description.")
+    actor_summary = models.TextField(blank=True, help_text="FHIR actor: participants in the scenario.")
+    instance_summary = models.TextField(blank=True, help_text="FHIR instance: resources used in the scenario.")
+    process_summary = models.TextField(blank=True, help_text="FHIR process: scenario process steps.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this example scenario.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class NamingSystem(models.Model):
+    name = models.CharField(max_length=255, help_text="FHIR name: computer-friendly naming system name.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    kind = models.CharField(max_length=30, blank=True, help_text="FHIR kind: codesystem, identifier, or root.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: naming system description.")
+    unique_id_summary = models.TextField(blank=True, help_text="FHIR uniqueId: unique identifiers such as URI, OID, UUID, or other ids.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this naming system.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
+class TerminologyCapabilities(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this terminology capabilities resource.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the terminology capabilities resource.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly terminology capabilities name.")
+    title = models.CharField(max_length=255, help_text="FHIR title/name: human-friendly terminology capabilities label.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: terminology server capabilities description.")
+    kind = models.CharField(max_length=30, blank=True, help_text="FHIR kind: instance, capability, or requirements.")
+    code_system_summary = models.TextField(blank=True, help_text="FHIR codeSystem: supported code systems and versions.")
+    expansion_summary = models.TextField(blank=True, help_text="FHIR expansion: expansion behavior and parameters.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this terminology capabilities resource.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class ActivityDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this activity definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the activity definition.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly activity definition name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly activity definition title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: activity definition description.")
+    activity_kind = models.CharField(max_length=50, blank=True, help_text="FHIR kind: resource type this activity creates.")
+    intent = models.CharField(max_length=50, blank=True, help_text="FHIR intent: proposal, plan, directive, order, etc.")
+    priority = models.CharField(max_length=50, blank=True, help_text="FHIR priority: routine, urgent, asap, or stat.")
+    code = models.CharField(max_length=255, blank=True, help_text="FHIR code: detail of the activity to perform.")
+    participant_summary = models.TextField(blank=True, help_text="FHIR participant: participants expected to perform the activity.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this activity definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class EventDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this event definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the event definition.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly event definition name.")
+    title = models.CharField(max_length=255, help_text="FHIR title: human-friendly event definition title.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: event definition description.")
+    trigger_summary = models.TextField(blank=True, help_text="FHIR trigger: triggering events for this definition.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this event definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class SpecimenDefinition(models.Model):
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL for this specimen definition.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version of the specimen definition.")
+    title = models.CharField(max_length=255, help_text="FHIR typeCollected/title: human-friendly specimen definition label.")
+    status = models.CharField(max_length=30, blank=True, help_text="FHIR status: draft, active, retired, or unknown.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible for this artifact.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change date.")
+    description = models.TextField(blank=True, help_text="FHIR description: specimen definition description.")
+    specimen_type = models.CharField(max_length=255, blank=True, help_text="FHIR typeCollected: kind of specimen to collect.")
+    collection_summary = models.TextField(blank=True, help_text="FHIR collection: preferred collection method and requirements.")
+    type_tested_summary = models.TextField(blank=True, help_text="FHIR typeTested: specimen testing details and handling requirements.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this specimen definition.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+# =============================================================================
+# Organizations And Locations
+# Core organization and location directory records used by many clinical resources.
+# =============================================================================
+
 class Organization(models.Model):
     name = models.CharField(max_length=255, help_text="FHIR name: organization name.")
     organization_type = models.CharField(max_length=255, blank=True, help_text="FHIR type: kind of organization, such as provider, department, team, or payer.")
@@ -2926,3 +3572,4 @@ class Location(models.Model):
 
     def __str__(self):
         return self.name
+

@@ -100,6 +100,18 @@ class SettingsBackupPageTests(TestCase):
             ("Coverages", "admin:clinical_coverage_changelist"),
             ("Explanations of Benefits", "admin:clinical_explanationofbenefit_changelist"),
             ("Insurance Plans", "admin:clinical_insuranceplan_changelist"),
+            ("Coverage Eligibility Requests", "admin:clinical_coverageeligibilityrequest_changelist"),
+            ("Coverage Eligibility Responses", "admin:clinical_coverageeligibilityresponse_changelist"),
+            ("Enrollment Requests", "admin:clinical_enrollmentrequest_changelist"),
+            ("Enrollment Responses", "admin:clinical_enrollmentresponse_changelist"),
+            ("Payment Notices", "admin:clinical_paymentnotice_changelist"),
+            ("Payment Reconciliations", "admin:clinical_paymentreconciliation_changelist"),
+            ("Libraries", "admin:clinical_library_changelist"),
+            ("Plan Definitions", "admin:clinical_plandefinition_changelist"),
+            ("Measures", "admin:clinical_measure_changelist"),
+            ("Measure Reports", "admin:clinical_measurereport_changelist"),
+            ("Test Scripts", "admin:clinical_testscript_changelist"),
+            ("Test Reports", "admin:clinical_testreport_changelist"),
             ("Claims", "admin:clinical_claim_changelist"),
             ("Claim Responses", "admin:clinical_claimresponse_changelist"),
             ("Accounts", "admin:clinical_account_changelist"),
@@ -108,6 +120,23 @@ class SettingsBackupPageTests(TestCase):
             ("Charge Items", "admin:clinical_chargeitem_changelist"),
             ("Research Studies", "admin:clinical_researchstudy_changelist"),
             ("Research Subjects", "admin:clinical_researchsubject_changelist"),
+            ("Capability Statements", "admin:clinical_capabilitystatement_changelist"),
+            ("Structure Definitions", "admin:clinical_structuredefinition_changelist"),
+            ("Implementation Guides", "admin:clinical_implementationguide_changelist"),
+            ("Search Parameters", "admin:clinical_searchparameter_changelist"),
+            ("Message Definitions", "admin:clinical_messagedefinition_changelist"),
+            ("Operation Definitions", "admin:clinical_operationdefinition_changelist"),
+            ("Compartment Definitions", "admin:clinical_compartmentdefinition_changelist"),
+            ("Structure Maps", "admin:clinical_structuremap_changelist"),
+            ("Graph Definitions", "admin:clinical_graphdefinition_changelist"),
+            ("Example Scenarios", "admin:clinical_examplescenario_changelist"),
+            ("Naming Systems", "admin:clinical_namingsystem_changelist"),
+            ("Terminology Capabilities", "admin:clinical_terminologycapabilities_changelist"),
+            ("Activity Definitions", "admin:clinical_activitydefinition_changelist"),
+            ("Event Definitions", "admin:clinical_eventdefinition_changelist"),
+            ("Specimen Definitions", "admin:clinical_specimendefinition_changelist"),            ("Code Systems", "admin:clinical_codesystem_changelist"),
+            ("Value Sets", "admin:clinical_valueset_changelist"),
+            ("Concept Maps", "admin:clinical_conceptmap_changelist"),
             ("Questionnaires", "admin:clinical_questionnaire_changelist"),
             ("Device Definitions", "admin:clinical_devicedefinition_changelist"),
             ("Observation Definitions", "admin:clinical_observationdefinition_changelist"),
@@ -162,6 +191,8 @@ class SettingsBackupPageTests(TestCase):
         self.assertContains(response, "Claims")
         self.assertContains(response, "Accounts")
         self.assertContains(response, "Research Subjects")
+        self.assertContains(response, "Measure Reports")
+        self.assertContains(response, "Coverage Eligibility Requests")
         self.assertContains(response, "Audit Events")
         self.assertContains(response, "Consents")
         self.assertContains(response, "Tasks")
@@ -175,3 +206,5 @@ class SettingsBackupPageTests(TestCase):
         self.assertContains(response, f"{reverse('admin:clinical_account_changelist')}?patient__id__exact={patient.pk}")
         self.assertContains(response, f"{reverse('admin:clinical_task_changelist')}?patient__id__exact={patient.pk}")
         self.assertContains(response, "1 record")
+
+

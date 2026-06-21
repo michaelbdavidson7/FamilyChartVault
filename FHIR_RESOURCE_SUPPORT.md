@@ -12,6 +12,21 @@ Status legend:
 
 ## Current First-Class Support
 
+- `ActivityDefinition` -> `clinical.ActivityDefinition`
+- `CapabilityStatement` -> `clinical.CapabilityStatement`
+- `CompartmentDefinition` -> `clinical.CompartmentDefinition`
+- `EventDefinition` -> `clinical.EventDefinition`
+- `ExampleScenario` -> `clinical.ExampleScenario`
+- `GraphDefinition` -> `clinical.GraphDefinition`
+- `ImplementationGuide` -> `clinical.ImplementationGuide`
+- `MessageDefinition` -> `clinical.MessageDefinition`
+- `NamingSystem` -> `clinical.NamingSystem`
+- `OperationDefinition` -> `clinical.OperationDefinition`
+- `SearchParameter` -> `clinical.SearchParameter`
+- `SpecimenDefinition` -> `clinical.SpecimenDefinition`
+- `StructureDefinition` -> `clinical.StructureDefinition`
+- `StructureMap` -> `clinical.StructureMap`
+- `TerminologyCapabilities` -> `clinical.TerminologyCapabilities`
 - `Account` -> `clinical.Account`
 - `AdverseEvent` -> `clinical.AdverseEvent`
 - `AllergyIntolerance` -> `clinical.Allergy`
@@ -26,9 +41,22 @@ Status legend:
 - `Claim` -> `clinical.Claim`
 - `ClaimResponse` -> `clinical.ClaimResponse`
 - `ClinicalImpression` -> `clinical.ClinicalImpression`
+- `CodeSystem` -> `clinical.CodeSystem`
+- `ConceptMap` -> `clinical.ConceptMap`
 - `Composition` -> `clinical.Composition`
 - `Condition` -> `clinical.Condition`
 - `Consent` -> `clinical.Consent`
+- `CoverageEligibilityRequest` -> `clinical.CoverageEligibilityRequest`
+- `CoverageEligibilityResponse` -> `clinical.CoverageEligibilityResponse`
+- `EnrollmentRequest` -> `clinical.EnrollmentRequest`
+- `EnrollmentResponse` -> `clinical.EnrollmentResponse`
+- `Measure` -> `clinical.Measure`
+- `MeasureReport` -> `clinical.MeasureReport`
+- `PaymentNotice` -> `clinical.PaymentNotice`
+- `PaymentReconciliation` -> `clinical.PaymentReconciliation`
+- `PlanDefinition` -> `clinical.PlanDefinition`
+- `TestScript` -> `clinical.TestScript`
+- `TestReport` -> `clinical.TestReport`
 - `Coverage` -> `clinical.Coverage`
 - `DetectedIssue` -> `clinical.DetectedIssue`
 - `Device` -> `clinical.Device`
@@ -57,6 +85,7 @@ Status legend:
 - `Invoice` -> `clinical.Invoice`
 - `List` -> `clinical.FHIRList`
 - `Location` -> `clinical.Location`
+- `Library` -> `clinical.Library`
 - `Media` -> `clinical.Media`
 - `Medication` -> `clinical.MedicationCatalog`
 - `MedicationAdministration` -> `clinical.MedicationAdministration`
@@ -91,6 +120,7 @@ Status legend:
 - `SupplyDelivery` -> `clinical.SupplyDelivery`
 - `SupplyRequest` -> `clinical.SupplyRequest`
 - `Task` -> `clinical.Task`
+- `ValueSet` -> `clinical.ValueSet`
 - `VisionPrescription` -> `clinical.VisionPrescription`
 
 ## Foundation
@@ -99,26 +129,26 @@ Status legend:
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `CapabilityStatement` | Snapshot candidate | Technical server capability metadata. |
-| `StructureDefinition` | Snapshot candidate | Profile/extension definitions. |
-| `ImplementationGuide` | Snapshot candidate | IG package metadata. |
-| `SearchParameter` | Snapshot candidate | Search metadata. |
-| `MessageDefinition` | Snapshot candidate | Messaging definition. |
-| `OperationDefinition` | Snapshot candidate | Operation metadata. |
-| `CompartmentDefinition` | Snapshot candidate | Compartment metadata. |
-| `StructureMap` | Snapshot candidate | Mapping definition. |
-| `GraphDefinition` | Snapshot candidate | Resource graph definition. |
-| `ExampleScenario` | Snapshot candidate | Documentation/example artifact. |
+| `CapabilityStatement` | First-class | Technical server capability metadata. |
+| `StructureDefinition` | First-class | Profile/extension definitions. |
+| `ImplementationGuide` | First-class | IG package metadata. |
+| `SearchParameter` | First-class | Search metadata. |
+| `MessageDefinition` | First-class | Messaging definition. |
+| `OperationDefinition` | First-class | Operation metadata. |
+| `CompartmentDefinition` | First-class | Compartment metadata. |
+| `StructureMap` | First-class | Mapping definition. |
+| `GraphDefinition` | First-class | Resource graph definition. |
+| `ExampleScenario` | First-class | Documentation/example artifact. |
 
 ### Terminology
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `CodeSystem` | Snapshot candidate | Terminology definition. |
-| `ValueSet` | Snapshot candidate | Terminology value set. |
-| `ConceptMap` | Snapshot candidate | Terminology mapping. |
-| `NamingSystem` | Snapshot candidate | Identifier namespace metadata. |
-| `TerminologyCapabilities` | Snapshot candidate | Terminology server capability metadata. |
+| `CodeSystem` | First-class | Terminology definition. |
+| `ValueSet` | First-class | Terminology value set. |
+| `ConceptMap` | First-class | Terminology mapping. |
+| `NamingSystem` | First-class | Identifier namespace metadata. |
+| `TerminologyCapabilities` | First-class | Terminology server capability metadata. |
 
 ### Security
 
@@ -196,7 +226,7 @@ Status legend:
 | `EpisodeOfCare` | First-class | Larger care episode grouping. |
 | `Flag` | First-class | Patient warnings/alerts. |
 | `List` | First-class | FHIR lists/groupings of resources. |
-| `Library` | Snapshot candidate | Knowledge artifact. |
+| `Library` | First-class | Knowledge artifact. |
 
 ## Clinical
 
@@ -271,10 +301,10 @@ Status legend:
 | Resource | Status | Notes |
 | --- | --- | --- |
 | `Coverage` | First-class | Insurance coverage, subscriber IDs, payer details, and benefit classifications. |
-| `CoverageEligibilityRequest` | Snapshot candidate | Eligibility request. |
-| `CoverageEligibilityResponse` | Snapshot candidate | Eligibility response. |
-| `EnrollmentRequest` | Snapshot candidate | Enrollment request. |
-| `EnrollmentResponse` | Snapshot candidate | Enrollment response. |
+| `CoverageEligibilityRequest` | First-class | Eligibility request. |
+| `CoverageEligibilityResponse` | First-class | Eligibility response. |
+| `EnrollmentRequest` | First-class | Enrollment request. |
+| `EnrollmentResponse` | First-class | Enrollment response. |
 
 ### Billing
 
@@ -288,8 +318,8 @@ Status legend:
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `PaymentNotice` | Snapshot candidate | Payment notification. |
-| `PaymentReconciliation` | Snapshot candidate | Payment reconciliation. |
+| `PaymentNotice` | First-class | Payment notification. |
+| `PaymentReconciliation` | First-class | Payment reconciliation. |
 
 ### General
 
@@ -315,13 +345,13 @@ Status legend:
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `ActivityDefinition` | Snapshot candidate | Knowledge artifact. |
+| `ActivityDefinition` | First-class | Knowledge artifact. |
 | `DeviceDefinition` | First-class | Device catalog/definition. |
-| `EventDefinition` | Snapshot candidate | Knowledge artifact. |
+| `EventDefinition` | First-class | Knowledge artifact. |
 | `ObservationDefinition` | First-class | Observation catalog/definition. |
-| `PlanDefinition` | Snapshot candidate | Care plan definition/knowledge artifact. |
+| `PlanDefinition` | First-class | Care plan definition/knowledge artifact. |
 | `Questionnaire` | First-class | Form definitions. |
-| `SpecimenDefinition` | Snapshot candidate | Specimen catalog/definition. |
+| `SpecimenDefinition` | First-class | Specimen catalog/definition. |
 
 ### Evidence-Based Medicine
 
@@ -338,10 +368,10 @@ Status legend:
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `Measure` | Snapshot candidate | Quality measure definition. |
-| `MeasureReport` | Snapshot candidate | Quality measure report. |
-| `TestScript` | Snapshot candidate | FHIR testing artifact. |
-| `TestReport` | Snapshot candidate | FHIR testing artifact. |
+| `Measure` | First-class | Quality measure definition. |
+| `MeasureReport` | First-class | Quality measure report. |
+| `TestScript` | First-class | FHIR testing artifact. |
+| `TestReport` | First-class | FHIR testing artifact. |
 
 ### Medication Definition
 
@@ -367,3 +397,7 @@ Status legend:
 ## Next Completeness Step
 
 The app preserves unsupported but well-formed FHIR R4 resources as valid `FHIRResourceSnapshot` rows with `import_status="snapshot_only"`. First-class models can then be added selectively based on real imported data and patient-facing value.
+
+
+
+

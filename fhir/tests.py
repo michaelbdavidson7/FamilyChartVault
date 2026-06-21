@@ -16,12 +16,29 @@ from django.urls import reverse
 
 from clinical.models import (
     AdverseEvent,
+    TerminologyCapabilities,
+    StructureMap,
+    StructureDefinition,
+    SpecimenDefinition,
+    SearchParameter,
+    OperationDefinition,
+    NamingSystem,
+    MessageDefinition,
+    ImplementationGuide,
+    GraphDefinition,
+    ExampleScenario,
+    EventDefinition,
+    CompartmentDefinition,
+    CapabilityStatement,
+    ActivityDefinition,
     BodyStructure,
     CarePlan,
     CareTeam,
     CareTeamParticipant,
     ClinicalImpression,
     ClinicalImpressionFinding,
+    CodeSystem,
+    ConceptMap,
     Condition,
     DetectedIssue,
     Device,
@@ -40,15 +57,21 @@ from clinical.models import (
     Immunization,
     ImmunizationRecommendation,
     Location,
+    Library,
     MedicationAdministration,
     MedicationCatalog,
     MedicationDispense,
     Medication,
+    Measure,
+    MeasureReport,
     NutritionOrder,
     Observation,
     Organization,
     Person,
     PersonLink,
+    PaymentNotice,
+    PaymentReconciliation,
+    PlanDefinition,
     Practitioner,
     PractitionerRole,
     Procedure,
@@ -57,10 +80,17 @@ from clinical.models import (
     RiskAssessment,
     ServiceRequest,
     Specimen,
+    TestReport,
+    TestScript,
+    ValueSet,
     Communication,
     CommunicationRequest,
     Consent,
     Coverage,
+    CoverageEligibilityRequest,
+    CoverageEligibilityResponse,
+    EnrollmentRequest,
+    EnrollmentResponse,
     ExplanationOfBenefit,
     InsurancePlan,
     QuestionnaireResponse,
@@ -1914,6 +1944,103 @@ class FHIRImportTests(TestCase):
         self.assertEqual(device_use.reason_conditions.get(), Condition.objects.get())
         self.assertEqual(device_use.reason_risk_assessments.get(), risk)
 
+    def test_imports_quality_reporting_and_payment_resources(self):
+        payload = {
+            "resourceType": "Bundle",
+            "entry": [
+                {"resource": {"resourceType": "Patient", "id": "pat-quality", "name": [{"family": "Rivera", "given": ["Maya"]}]}},
+                {"resource": {"resourceType": "Organization", "id": "payer-1", "name": "Acme Health Plan"}},
+                {"resource": {"resourceType": "Coverage", "id": "coverage-1", "beneficiary": {"reference": "Patient/pat-quality"}, "payor": [{"reference": "Organization/payer-1"}], "status": "active"}},
+                {"resource": {"resourceType": "Measure", "id": "measure-1", "title": "Screening Measure", "status": "active", "scoring": {"text": "proportion"}}},
+                {"resource": {"resourceType": "MeasureReport", "id": "measure-report-1", "status": "complete", "type": "individual", "subject": {"reference": "Patient/pat-quality"}, "measure": "Measure/measure-1"}},
+                {"resource": {"resourceType": "TestScript", "id": "testscript-1", "title": "FHIR Smoke Test", "status": "active"}},
+                {"resource": {"resourceType": "TestReport", "id": "testreport-1", "name": "FHIR Smoke Report", "status": "completed", "result": "pass", "testScript": {"reference": "TestScript/testscript-1"}}},
+                {"resource": {"resourceType": "CoverageEligibilityRequest", "id": "eligibility-request-1", "status": "active", "purpose": ["benefits"], "patient": {"reference": "Patient/pat-quality"}, "insurer": {"reference": "Organization/payer-1"}, "insurance": [{"coverage": {"reference": "Coverage/coverage-1"}}], "item": [{"category": {"text": "medical"}, "productOrService": {"text": "office visit"}}]}},
+                {"resource": {"resourceType": "CoverageEligibilityResponse", "id": "eligibility-response-1", "status": "active", "purpose": ["benefits"], "outcome": "complete", "patient": {"reference": "Patient/pat-quality"}, "request": {"reference": "CoverageEligibilityRequest/eligibility-request-1"}, "insurer": {"reference": "Organization/payer-1"}}},
+                {"resource": {"resourceType": "EnrollmentRequest", "id": "enrollment-request-1", "status": "active", "candidate": {"reference": "Patient/pat-quality"}, "insurer": {"reference": "Organization/payer-1"}, "coverage": {"reference": "Coverage/coverage-1"}}},
+                {"resource": {"resourceType": "EnrollmentResponse", "id": "enrollment-response-1", "status": "active", "outcome": "complete", "request": {"reference": "EnrollmentRequest/enrollment-request-1"}, "organization": {"reference": "Organization/payer-1"}}},
+                {"resource": {"resourceType": "PaymentNotice", "id": "payment-notice-1", "status": "active", "recipient": {"reference": "Organization/payer-1"}, "amount": {"value": 10, "currency": "USD"}, "request": {"reference": "CoverageEligibilityRequest/eligibility-request-1"}}},
+                {"resource": {"resourceType": "PaymentReconciliation", "id": "payment-reconciliation-1", "status": "active", "outcome": "complete", "paymentIssuer": {"reference": "Organization/payer-1"}, "paymentAmount": {"value": 10, "currency": "USD"}}},
+            ],
+        }
+
+        result = import_fhir_json(payload)
+
+        self.assertEqual(result.errors, [])
+        self.assertEqual(Measure.objects.get().title, "Screening Measure")
+        self.assertEqual(MeasureReport.objects.get().patient, PatientProfile.objects.get())
+        self.assertEqual(TestReport.objects.get().test_script, TestScript.objects.get())
+        self.assertEqual(CoverageEligibilityRequest.objects.get().patient, PatientProfile.objects.get())
+        self.assertEqual(CoverageEligibilityResponse.objects.get().request, CoverageEligibilityRequest.objects.get())
+        self.assertEqual(EnrollmentRequest.objects.get().coverage, Coverage.objects.get())
+        self.assertEqual(EnrollmentResponse.objects.get().request, EnrollmentRequest.objects.get())
+        self.assertEqual(PaymentNotice.objects.get().recipient, Organization.objects.get())
+        self.assertEqual(PaymentReconciliation.objects.get().payment_issuer, Organization.objects.get())
+
+    def test_imports_terminology_and_knowledge_resources(self):
+        payload = {
+            "resourceType": "Bundle",
+            "entry": [
+                {"resource": {"resourceType": "CodeSystem", "id": "codesystem-1", "title": "Local Codes", "status": "active", "content": "complete", "concept": [{"code": "abc", "display": "ABC"}]}},
+                {"resource": {"resourceType": "ValueSet", "id": "valueset-1", "title": "Local Value Set", "status": "active", "compose": {"include": [{"system": "http://example.test/codes", "concept": [{"code": "abc"}]}]}}},
+                {"resource": {"resourceType": "ConceptMap", "id": "conceptmap-1", "title": "Local Map", "status": "active", "sourceUri": "http://example.test/source", "targetUri": "http://example.test/target", "group": [{"source": "source", "target": "target", "element": [{"code": "abc", "target": [{"code": "xyz", "equivalence": "equivalent"}]}]}]}},
+                {"resource": {"resourceType": "Library", "id": "library-1", "title": "Logic Library", "status": "active", "type": {"text": "logic-library"}, "content": [{"contentType": "text/cql", "title": "logic.cql"}]}},
+                {"resource": {"resourceType": "PlanDefinition", "id": "plandefinition-1", "title": "Care Protocol", "status": "active", "type": {"text": "clinical-protocol"}, "action": [{"title": "Review chart", "description": "Review relevant records"}]}},
+            ],
+        }
+
+        result = import_fhir_json(payload)
+
+        self.assertEqual(result.errors, [])
+        self.assertEqual(CodeSystem.objects.get().title, "Local Codes")
+        self.assertIn("abc", CodeSystem.objects.get().concept_summary)
+        self.assertEqual(ValueSet.objects.get().title, "Local Value Set")
+        self.assertIn("http://example.test/codes", ValueSet.objects.get().compose_summary)
+        self.assertEqual(ConceptMap.objects.get().source_uri, "http://example.test/source")
+        self.assertEqual(Library.objects.get().library_type, "logic-library")
+        self.assertIn("logic.cql", Library.objects.get().content_summary)
+        self.assertEqual(PlanDefinition.objects.get().plan_type, "clinical-protocol")
+        self.assertIn("Review chart", PlanDefinition.objects.get().action_summary)
+    def test_imports_metadata_definition_resources(self):
+        payload = {
+            "resourceType": "Bundle",
+            "entry": [
+                {"resource": {"resourceType": "CapabilityStatement", "id": "capability-1", "title": "Server Capabilities", "status": "active", "kind": "capability", "fhirVersion": "4.0.1", "format": ["json"]}},
+                {"resource": {"resourceType": "StructureDefinition", "id": "structure-1", "title": "Patient Profile", "status": "active", "kind": "resource", "type": "Patient", "abstract": False}},
+                {"resource": {"resourceType": "ImplementationGuide", "id": "ig-1", "title": "Local IG", "status": "active", "packageId": "local.fhir", "fhirVersion": ["4.0.1"]}},
+                {"resource": {"resourceType": "SearchParameter", "id": "search-1", "name": "PatientName", "status": "active", "code": "name", "base": ["Patient"], "type": "string", "expression": "Patient.name"}},
+                {"resource": {"resourceType": "MessageDefinition", "id": "message-1", "title": "ADT Message", "status": "active", "eventUri": "http://example.test/event", "category": "notification"}},
+                {"resource": {"resourceType": "OperationDefinition", "id": "operation-1", "title": "Everything", "status": "active", "kind": "operation", "code": "everything", "system": True}},
+                {"resource": {"resourceType": "CompartmentDefinition", "id": "compartment-1", "name": "Patient", "status": "active", "code": "Patient", "search": True}},
+                {"resource": {"resourceType": "StructureMap", "id": "map-1", "title": "Patient Map", "status": "active", "structure": [{"url": "StructureDefinition/Patient", "mode": "source"}]}},
+                {"resource": {"resourceType": "GraphDefinition", "id": "graph-1", "title": "Patient Graph", "status": "active", "start": "Patient", "link": [{"path": "Patient.generalPractitioner"}]}},
+                {"resource": {"resourceType": "ExampleScenario", "id": "scenario-1", "title": "Scheduling Scenario", "status": "active", "actor": [{"actorId": "patient", "name": "Patient"}]}},
+                {"resource": {"resourceType": "NamingSystem", "id": "naming-1", "name": "Local IDs", "status": "active", "kind": "identifier", "uniqueId": [{"type": "uri", "value": "http://example.test/ids"}]}},
+                {"resource": {"resourceType": "TerminologyCapabilities", "id": "termcap-1", "title": "Terminology Capabilities", "status": "active", "kind": "capability", "codeSystem": [{"uri": "http://loinc.org"}]}},
+                {"resource": {"resourceType": "ActivityDefinition", "id": "activity-1", "title": "Order Lab", "status": "active", "kind": "ServiceRequest", "intent": "order", "code": {"text": "CBC"}}},
+                {"resource": {"resourceType": "EventDefinition", "id": "event-1", "title": "Patient Arrived", "status": "active", "trigger": [{"type": "named-event", "name": "patient-arrived"}]}},
+                {"resource": {"resourceType": "SpecimenDefinition", "id": "specdef-1", "url": "http://example.test/specimen", "status": "active", "typeCollected": {"text": "Blood"}}},
+            ],
+        }
+
+        result = import_fhir_json(payload)
+
+        self.assertEqual(result.errors, [])
+        self.assertEqual(CapabilityStatement.objects.get().kind, "capability")
+        self.assertEqual(StructureDefinition.objects.get().type_code, "Patient")
+        self.assertEqual(ImplementationGuide.objects.get().package_id, "local.fhir")
+        self.assertEqual(SearchParameter.objects.get().code, "name")
+        self.assertEqual(MessageDefinition.objects.get().event, "http://example.test/event")
+        self.assertEqual(OperationDefinition.objects.get().code, "everything")
+        self.assertEqual(CompartmentDefinition.objects.get().code, "Patient")
+        self.assertIn("StructureDefinition/Patient", StructureMap.objects.get().structure_summary)
+        self.assertEqual(GraphDefinition.objects.get().start, "Patient")
+        self.assertIn("patient", ExampleScenario.objects.get().actor_summary)
+        self.assertEqual(NamingSystem.objects.get().kind, "identifier")
+        self.assertEqual(TerminologyCapabilities.objects.get().kind, "capability")
+        self.assertEqual(ActivityDefinition.objects.get().activity_kind, "ServiceRequest")
+        self.assertIn("patient-arrived", EventDefinition.objects.get().trigger_summary)
+        self.assertEqual(SpecimenDefinition.objects.get().specimen_type, "Blood")
     def test_missing_patient_reference_is_snapshotted_as_invalid(self):
         result = import_fhir_json(
             {
@@ -1934,10 +2061,9 @@ class FHIRImportTests(TestCase):
     def test_unsupported_resource_is_preserved_as_valid_snapshot_only(self):
         result = import_fhir_json(
             {
-                "resourceType": "PaymentNotice",
-                "id": "payment-notice-1",
-                "status": "active",
-                "recipient": {"reference": "Organization/missing"},
+                "resourceType": "OperationOutcome",
+                "id": "operation-outcome-1",
+                "issue": [{"severity": "information", "code": "informational"}],
             }
         )
 
@@ -1949,7 +2075,7 @@ class FHIRImportTests(TestCase):
         self.assertTrue(snapshot.is_valid)
         self.assertEqual(snapshot.import_status, FHIRResourceSnapshot.IMPORT_STATUS_SNAPSHOT_ONLY)
         self.assertEqual(snapshot.validation_errors, [])
-        self.assertEqual(snapshot.resource_type, "PaymentNotice")
+        self.assertEqual(snapshot.resource_type, "OperationOutcome")
 
     def test_loads_fhir_json_rejects_invalid_json(self):
         with self.assertRaises(ValueError):
@@ -2175,3 +2301,8 @@ class FHIRImportTests(TestCase):
         self.assertEqual(PatientProfile.objects.filter(first_name="Maya", last_name="Rivera").count(), 0)
         messages = [str(message) for message in get_messages(response.wsgi_request)]
         self.assertTrue(any("database backup failed" in message for message in messages))
+
+
+
+
+

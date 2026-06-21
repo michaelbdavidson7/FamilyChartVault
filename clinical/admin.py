@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.db import models
 from .models import (
     Account,
+    ActivityDefinition,
     AdverseEvent,
     Allergy,
     CarePlan,
@@ -10,6 +11,10 @@ from .models import (
     CareTeamParticipant,
     ClinicalImpression,
     ClinicalImpressionFinding,
+    CodeSystem,
+    ConceptMap,
+    EventDefinition,
+    ExampleScenario,
     Condition,
     DetectedIssue,
     DeviceDefinition,
@@ -24,24 +29,35 @@ from .models import (
     FHIRGroup,
     FHIRGroupMember,
     FHIRList,
+    GraphDefinition,
     GuidanceResponse,
     Goal,
     ImagingStudy,
     Immunization,
     ImmunizationEvaluation,
     ImmunizationRecommendation,
+    ImplementationGuide,
     Location,
     Media,
+    MessageDefinition,
     MedicationAdministration,
     MedicationCatalog,
     MedicationDispense,
     MedicationKnowledge,
     Medication,
+    Library,
+    Measure,
+    MeasureReport,
     MolecularSequence,
     NutritionOrder,
+    NamingSystem,
     Observation,
     ObservationDefinition,
+    OperationDefinition,
     Organization,
+    PaymentNotice,
+    PaymentReconciliation,
+    PlanDefinition,
     Person,
     PersonLink,
     Practitioner,
@@ -54,6 +70,7 @@ from .models import (
     RiskAssessment,
     ServiceRequest,
     Specimen,
+    SpecimenDefinition,
     BodyStructure,
     Communication,
     CommunicationRequest,
@@ -62,13 +79,19 @@ from .models import (
     Appointment,
     AppointmentResponse,
     AuditEvent,
+    CapabilityStatement,
     ChargeItem,
+    CompartmentDefinition,
     Claim,
     ClaimResponse,
+    CoverageEligibilityRequest,
+    CoverageEligibilityResponse,
     BinaryResource,
     Composition,
     DeviceMetric,
     DocumentManifest,
+    EnrollmentRequest,
+    EnrollmentResponse,
     Invoice,
     Endpoint,
     ExplanationOfBenefit,
@@ -79,11 +102,18 @@ from .models import (
     QuestionnaireResponse,
     RequestGroup,
     Schedule,
+    SearchParameter,
     Slot,
     Substance,
     SupplyDelivery,
     SupplyRequest,
+    StructureDefinition,
+    StructureMap,
     Task,
+    ValueSet,
+    TestScript,
+    TestReport,
+    TerminologyCapabilities,
     VisionPrescription,
     OrganizationAffiliation,
     Provenance,
@@ -1256,6 +1286,242 @@ class QuestionnaireAdmin(admin.ModelAdmin):
     search_fields = ("title", "name", "url", "publisher", "subject_type", "item_summary")
     list_filter = ("status", "publisher", "subject_type")
     ordering = ("title",)
+@admin.register(Measure)
+class MeasureAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "measure_type", "scoring", "publisher")
+    list_display_links = ("title",)
+    search_fields = ("title", "name", "url", "publisher", "description", "group_summary")
+    list_filter = ("status", "measure_type", "scoring", "publisher")
+    ordering = ("title",)
+
+
+@admin.register(MeasureReport)
+class MeasureReportAdmin(admin.ModelAdmin):
+    list_display = ("id", "measure", "patient", "status", "report_type", "date")
+    list_display_links = ("measure",)
+    search_fields = ("group_summary", "evaluated_resource_summary", "notes")
+    list_filter = ("patient", "status", "report_type", "measure")
+    ordering = ("-date",)
+    autocomplete_fields = ["patient", "measure"]
+
+
+@admin.register(TestScript)
+class TestScriptAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "version", "publisher", "date")
+    list_display_links = ("title",)
+    search_fields = ("title", "name", "url", "publisher", "fixture_summary", "test_summary")
+    list_filter = ("status", "publisher")
+    ordering = ("title",)
+
+
+@admin.register(TestReport)
+class TestReportAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "test_script", "status", "result", "issued")
+    list_display_links = ("name",)
+    search_fields = ("name", "tester", "participant_summary", "action_summary")
+    list_filter = ("status", "result", "test_script")
+    ordering = ("-issued",)
+    autocomplete_fields = ["test_script"]
+
+
+@admin.register(CoverageEligibilityRequest)
+class CoverageEligibilityRequestAdmin(admin.ModelAdmin):
+    list_display = ("id", "patient", "status", "purpose", "insurer", "created_date")
+    search_fields = ("purpose", "priority", "insurance_summary", "item_summary", "notes")
+    list_filter = ("patient", "status", "purpose", "insurer")
+    ordering = ("-created_date",)
+    autocomplete_fields = ["patient", "insurer", "provider_organization"]
+
+
+@admin.register(CoverageEligibilityResponse)
+class CoverageEligibilityResponseAdmin(admin.ModelAdmin):
+    list_display = ("id", "patient", "status", "purpose", "outcome", "created_date")
+    search_fields = ("purpose", "outcome", "disposition", "insurance_summary", "error_summary")
+    list_filter = ("patient", "status", "purpose", "outcome", "insurer")
+    ordering = ("-created_date",)
+    autocomplete_fields = ["patient", "request", "insurer"]
+
+
+@admin.register(EnrollmentRequest)
+class EnrollmentRequestAdmin(admin.ModelAdmin):
+    list_display = ("id", "patient", "status", "insurer", "provider", "created_date")
+    search_fields = ("status", "notes")
+    list_filter = ("patient", "status", "insurer", "provider")
+    ordering = ("-created_date",)
+    autocomplete_fields = ["patient", "insurer", "provider", "coverage"]
+
+
+@admin.register(EnrollmentResponse)
+class EnrollmentResponseAdmin(admin.ModelAdmin):
+    list_display = ("id", "request", "status", "outcome", "organization", "created_date")
+    search_fields = ("outcome", "disposition", "notes")
+    list_filter = ("status", "outcome", "organization")
+    ordering = ("-created_date",)
+    autocomplete_fields = ["request", "organization"]
+
+
+@admin.register(PaymentNotice)
+class PaymentNoticeAdmin(admin.ModelAdmin):
+    list_display = ("id", "patient", "status", "payment_status", "amount", "payment_date")
+    search_fields = ("payment_status", "amount", "request_summary", "response_summary", "notes")
+    list_filter = ("patient", "status", "payment_status", "recipient")
+    ordering = ("-payment_date", "-created_date")
+    autocomplete_fields = ["patient", "recipient"]
+
+
+@admin.register(PaymentReconciliation)
+class PaymentReconciliationAdmin(admin.ModelAdmin):
+    list_display = ("id", "payment_issuer", "status", "outcome", "payment_amount", "payment_date")
+    search_fields = ("outcome", "disposition", "payment_amount", "detail_summary", "process_note_summary")
+    list_filter = ("status", "outcome", "payment_issuer")
+    ordering = ("-payment_date", "-created_date")
+    autocomplete_fields = ["payment_issuer"]
+
+
+
+class CanonicalMetadataAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "version", "publisher", "date")
+    list_display_links = ("title",)
+    search_fields = ("url", "name", "title", "publisher", "description", "notes")
+    list_filter = ("status", "publisher")
+    ordering = ("title", "version")
+
+
+@admin.register(CapabilityStatement)
+class CapabilityStatementAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("kind", "fhir_version", "format_summary", "rest_summary")
+    list_filter = ("status", "kind", "publisher")
+
+
+@admin.register(StructureDefinition)
+class StructureDefinitionAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("kind", "type_code", "base_definition", "derivation", "element_summary")
+    list_filter = ("status", "kind", "derivation", "publisher")
+
+
+@admin.register(ImplementationGuide)
+class ImplementationGuideAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("package_id", "fhir_version_summary", "definition_summary")
+    list_filter = ("status", "publisher")
+
+
+@admin.register(SearchParameter)
+class SearchParameterAdmin(CanonicalMetadataAdmin):
+    list_display = ("id", "title", "code", "search_type", "status", "publisher")
+    search_fields = CanonicalMetadataAdmin.search_fields + ("code", "base_summary", "search_type", "expression")
+    list_filter = ("status", "search_type", "publisher")
+
+
+@admin.register(MessageDefinition)
+class MessageDefinitionAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("event", "category", "response_required", "focus_summary")
+    list_filter = ("status", "category", "response_required", "publisher")
+
+
+@admin.register(OperationDefinition)
+class OperationDefinitionAdmin(CanonicalMetadataAdmin):
+    list_display = ("id", "title", "kind", "code", "status", "publisher")
+    search_fields = CanonicalMetadataAdmin.search_fields + ("kind", "code", "resource_summary", "parameter_summary")
+    list_filter = ("status", "kind", "system", "type_level", "instance", "publisher")
+
+
+@admin.register(CompartmentDefinition)
+class CompartmentDefinitionAdmin(CanonicalMetadataAdmin):
+    list_display = ("id", "title", "code", "status", "publisher")
+    search_fields = CanonicalMetadataAdmin.search_fields + ("code", "resource_summary")
+    list_filter = ("status", "code", "search", "publisher")
+
+
+@admin.register(StructureMap)
+class StructureMapAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("structure_summary", "group_summary")
+
+
+@admin.register(GraphDefinition)
+class GraphDefinitionAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("start", "profile", "link_summary")
+    list_filter = ("status", "start", "publisher")
+
+
+@admin.register(ExampleScenario)
+class ExampleScenarioAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("actor_summary", "instance_summary", "process_summary")
+
+
+@admin.register(NamingSystem)
+class NamingSystemAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "status", "kind", "publisher", "date")
+    list_display_links = ("name",)
+    search_fields = ("name", "publisher", "description", "unique_id_summary", "notes")
+    list_filter = ("status", "kind", "publisher")
+    ordering = ("name",)
+
+
+@admin.register(TerminologyCapabilities)
+class TerminologyCapabilitiesAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("kind", "code_system_summary", "expansion_summary")
+    list_filter = ("status", "kind", "publisher")
+
+
+@admin.register(ActivityDefinition)
+class ActivityDefinitionAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("activity_kind", "intent", "priority", "code", "participant_summary")
+    list_filter = ("status", "activity_kind", "intent", "priority", "publisher")
+
+
+@admin.register(EventDefinition)
+class EventDefinitionAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("trigger_summary",)
+
+
+@admin.register(SpecimenDefinition)
+class SpecimenDefinitionAdmin(CanonicalMetadataAdmin):
+    search_fields = CanonicalMetadataAdmin.search_fields + ("specimen_type", "collection_summary", "type_tested_summary")
+    list_filter = ("status", "specimen_type", "publisher")
+
+@admin.register(CodeSystem)
+class CodeSystemAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "version", "publisher", "content", "date")
+    list_display_links = ("title",)
+    search_fields = ("url", "name", "title", "publisher", "description", "concept_summary")
+    list_filter = ("status", "content", "publisher")
+    ordering = ("title", "version")
+
+
+@admin.register(ValueSet)
+class ValueSetAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "version", "publisher", "date")
+    list_display_links = ("title",)
+    search_fields = ("url", "name", "title", "publisher", "description", "compose_summary", "expansion_summary")
+    list_filter = ("status", "publisher", "immutable")
+    ordering = ("title", "version")
+
+
+@admin.register(ConceptMap)
+class ConceptMapAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "version", "publisher", "date")
+    list_display_links = ("title",)
+    search_fields = ("url", "name", "title", "publisher", "description", "source_uri", "target_uri", "group_summary")
+    list_filter = ("status", "publisher")
+    ordering = ("title", "version")
+
+
+@admin.register(Library)
+class LibraryAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "library_type", "version", "publisher", "date")
+    list_display_links = ("title",)
+    search_fields = ("url", "name", "title", "publisher", "description", "library_type", "subject", "content_summary")
+    list_filter = ("status", "library_type", "publisher")
+    ordering = ("title", "version")
+
+
+@admin.register(PlanDefinition)
+class PlanDefinitionAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "plan_type", "version", "publisher", "date")
+    list_display_links = ("title",)
+    search_fields = ("url", "name", "title", "publisher", "description", "plan_type", "subject", "goal_summary", "action_summary")
+    list_filter = ("status", "plan_type", "publisher")
+    ordering = ("title", "version")
 
 @admin.register(Coverage)
 class CoverageAdmin(admin.ModelAdmin):
@@ -1327,3 +1593,6 @@ class LocationAdmin(admin.ModelAdmin):
     @admin.display(description="Care teams")
     def care_team_count(self, obj):
         return obj.care_team_participations.count()
+
+
+

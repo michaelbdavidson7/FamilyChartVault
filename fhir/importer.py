@@ -11,14 +11,19 @@ from django.utils.dateparse import parse_date, parse_datetime
 
 from clinical.models import (
     Account,
+    ActivityDefinition,
     AdverseEvent,
     Allergy,
     Appointment,
     AppointmentResponse,
     AuditEvent,
+    CapabilityStatement,
     ChargeItem,
+    CompartmentDefinition,
     Claim,
     ClaimResponse,
+    CoverageEligibilityRequest,
+    CoverageEligibilityResponse,
     BinaryResource,
     BodyStructure,
     CarePlan,
@@ -26,6 +31,10 @@ from clinical.models import (
     CareTeamParticipant,
     ClinicalImpression,
     ClinicalImpressionFinding,
+    CodeSystem,
+    ConceptMap,
+    EventDefinition,
+    ExampleScenario,
     Composition,
     Condition,
     DetectedIssue,
@@ -36,6 +45,8 @@ from clinical.models import (
     DeviceUseStatement,
     DiagnosticReport,
     DocumentManifest,
+    EnrollmentRequest,
+    EnrollmentResponse,
     Invoice,
     Encounter,
     EpisodeOfCare,
@@ -45,6 +56,7 @@ from clinical.models import (
     FHIRGroup,
     FHIRGroupMember,
     FHIRList,
+    GraphDefinition,
     Flag,
     GuidanceResponse,
     Goal,
@@ -53,19 +65,29 @@ from clinical.models import (
     Immunization,
     ImmunizationEvaluation,
     ImmunizationRecommendation,
+    ImplementationGuide,
     Location,
     Media,
+    MessageDefinition,
     MedicationAdministration,
     MedicationCatalog,
     MedicationDispense,
     MedicationKnowledge,
     Medication,
+    Library,
+    Measure,
+    MeasureReport,
     MolecularSequence,
     NutritionOrder,
+    NamingSystem,
     Observation,
     ObservationDefinition,
+    OperationDefinition,
     Organization,
     OrganizationAffiliation,
+    PaymentNotice,
+    PaymentReconciliation,
+    PlanDefinition,
     Person,
     PersonLink,
     Practitioner,
@@ -78,6 +100,7 @@ from clinical.models import (
     RiskAssessment,
     ServiceRequest,
     Specimen,
+    SpecimenDefinition,
     Communication,
     CommunicationRequest,
     Consent,
@@ -89,11 +112,18 @@ from clinical.models import (
     Provenance,
     RequestGroup,
     Schedule,
+    SearchParameter,
     Slot,
     Substance,
     SupplyDelivery,
     SupplyRequest,
+    StructureDefinition,
+    StructureMap,
     Task,
+    ValueSet,
+    TestScript,
+    TestReport,
+    TerminologyCapabilities,
     VisionPrescription,
 )
 from documents.models import ClinicalDocument
@@ -105,10 +135,31 @@ from .models import FHIRLink, FHIRResourceSnapshot
 SUPPORTED_RESOURCE_TYPES = {
     "Patient",
     "Account",
+    "ActivityDefinition",
     "AdverseEvent",
     "Appointment",
     "AppointmentResponse",
     "AuditEvent",
+    "CapabilityStatement",
+    "CodeSystem",
+    "CompartmentDefinition",
+    "ConceptMap",
+    "EventDefinition",
+    "ExampleScenario",
+    "CoverageEligibilityRequest",
+    "CoverageEligibilityResponse",
+    "EnrollmentRequest",
+    "EnrollmentResponse",
+    "Library",
+    "Measure",
+    "MeasureReport",
+    "PaymentNotice",
+    "PaymentReconciliation",
+    "PlanDefinition",
+    "TestScript",
+    "TestReport",
+    "TerminologyCapabilities",
+    "ValueSet",
     "Binary",
     "ChargeItem",
     "Claim",
@@ -121,6 +172,7 @@ SUPPORTED_RESOURCE_TYPES = {
     "DeviceDefinition",
     "DiagnosticReport",
     "FamilyMemberHistory",
+    "GraphDefinition",
     "Flag",
     "GuidanceResponse",
     "ImagingStudy",
@@ -134,11 +186,15 @@ SUPPORTED_RESOURCE_TYPES = {
     "Immunization",
     "ImmunizationEvaluation",
     "ImmunizationRecommendation",
+    "ImplementationGuide",
     "Media",
+    "MessageDefinition",
     "MolecularSequence",
+    "NamingSystem",
     "NutritionOrder",
     "Observation",
     "ObservationDefinition",
+    "OperationDefinition",
     "Encounter",
     "CareTeam",
     "CarePlan",
@@ -147,6 +203,11 @@ SUPPORTED_RESOURCE_TYPES = {
     "Composition",
     "Consent",
     "Coverage",
+    "TestReport",
+    "TestScript",
+    "PaymentReconciliation",
+    "PaymentNotice",
+    "MeasureReport",
     "Device",
     "DeviceMetric",
     "DeviceRequest",
@@ -174,13 +235,18 @@ SUPPORTED_RESOURCE_TYPES = {
     "ResearchSubject",
     "RiskAssessment",
     "Schedule",
+    "SearchParameter",
     "ServiceRequest",
     "Slot",
     "Specimen",
+    "SpecimenDefinition",
+    "StructureDefinition",
+    "StructureMap",
     "Substance",
     "SupplyDelivery",
     "SupplyRequest",
     "Task",
+    "TerminologyCapabilities",
     "VisionPrescription",
     "Practitioner",
     "Organization",
@@ -192,7 +258,28 @@ SUPPORTED_RESOURCE_TYPES = {
 PATIENTLESS_RESOURCE_TYPES = {
     "Group",
     "Account",
+    "ActivityDefinition",
     "AuditEvent",
+    "CapabilityStatement",
+    "CodeSystem",
+    "CompartmentDefinition",
+    "ConceptMap",
+    "EventDefinition",
+    "ExampleScenario",
+    "GraphDefinition",
+    "ImplementationGuide",
+    "Library",
+    "MessageDefinition",
+    "NamingSystem",
+    "Measure",
+    "MeasureReport",
+    "PaymentNotice",
+    "PaymentReconciliation",
+    "PlanDefinition",
+    "TestScript",
+    "TestReport",
+    "TerminologyCapabilities",
+    "ValueSet",
     "Binary",
     "Endpoint",
     "HealthcareService",
@@ -207,11 +294,16 @@ PATIENTLESS_RESOURCE_TYPES = {
     "Organization",
     "Location",
     "Schedule",
+    "SearchParameter",
     "Slot",
+    "SpecimenDefinition",
+    "StructureDefinition",
+    "StructureMap",
     "Substance",
     "DeviceMetric",
     "DeviceDefinition",
     "ObservationDefinition",
+    "OperationDefinition",
     "Questionnaire",
     "ResearchStudy",
 }
@@ -261,6 +353,32 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
             importer = {
                 "Account": _import_account,
                 "AuditEvent": _import_audit_event,
+                "ActivityDefinition": _import_activity_definition,
+                "CapabilityStatement": _import_capability_statement,
+                "CompartmentDefinition": _import_compartment_definition,
+                "CodeSystem": _import_code_system,
+                "ConceptMap": _import_concept_map,
+                "EventDefinition": _import_event_definition,
+                "ExampleScenario": _import_example_scenario,
+                "GraphDefinition": _import_graph_definition,
+                "ImplementationGuide": _import_implementation_guide,
+                "Library": _import_library,
+                "MessageDefinition": _import_message_definition,
+                "NamingSystem": _import_naming_system,
+                "OperationDefinition": _import_operation_definition,
+                "Measure": _import_measure,
+                "MeasureReport": _import_measure_report,
+                "PaymentNotice": _import_payment_notice,
+                "PaymentReconciliation": _import_payment_reconciliation,
+                "PlanDefinition": _import_plan_definition,
+                "SearchParameter": _import_search_parameter,
+                "SpecimenDefinition": _import_specimen_definition,
+                "StructureDefinition": _import_structure_definition,
+                "StructureMap": _import_structure_map,
+                "TestScript": _import_test_script,
+                "TestReport": _import_test_report,
+                "TerminologyCapabilities": _import_terminology_capabilities,
+                "ValueSet": _import_value_set,
                 "Binary": _import_binary_resource,
                 "DeviceDefinition": _import_device_definition,
                 "DeviceMetric": _import_device_metric,
@@ -361,6 +479,10 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
                 "CommunicationRequest": _import_communication_request,
                 "Consent": _import_consent,
                 "Coverage": _import_coverage,
+                "CoverageEligibilityRequest": _import_coverage_eligibility_request,
+                "CoverageEligibilityResponse": _import_coverage_eligibility_response,
+                "EnrollmentRequest": _import_enrollment_request,
+                "EnrollmentResponse": _import_enrollment_response,
                 "Device": _import_device,
                 "DocumentReference": _import_document_reference,
                 "EpisodeOfCare": _import_episode_of_care,
@@ -1587,6 +1709,438 @@ def _import_questionnaire(resource, patient=None):
     created = obj.pk is None
     obj.save()
     return obj, created
+def _import_metadata_definition(resource, model_class, django_model, default_title, extra_fields=None):
+    obj = _object_for_resource(resource, django_model) or model_class()
+    if hasattr(obj, "url"):
+        obj.url = resource.get("url") or ""
+    if hasattr(obj, "version"):
+        obj.version = resource.get("version") or ""
+    if hasattr(obj, "name"):
+        obj.name = resource.get("name") or ""
+    if hasattr(obj, "title"):
+        obj.title = resource.get("title") or resource.get("name") or default_title
+    if hasattr(obj, "status"):
+        obj.status = resource.get("status") or ""
+    if hasattr(obj, "publisher"):
+        obj.publisher = resource.get("publisher") or ""
+    if hasattr(obj, "date"):
+        obj.date = _datetime(resource.get("date"))
+    if hasattr(obj, "description"):
+        obj.description = resource.get("description") or ""
+    if hasattr(obj, "notes"):
+        obj.notes = _notes(resource)
+    for field, value in (extra_fields or {}).items():
+        setattr(obj, field, value)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_capability_statement(resource, patient=None):
+    return _import_metadata_definition(resource, CapabilityStatement, "clinical.CapabilityStatement", "Capability Statement", {
+        "kind": resource.get("kind") or "",
+        "fhir_version": resource.get("fhirVersion") or "",
+        "format_summary": ", ".join((resource.get("format") or []) + (resource.get("patchFormat") or [])),
+        "rest_summary": _compact_json(resource.get("rest")),
+    })
+
+
+def _import_structure_definition(resource, patient=None):
+    elements = ((resource.get("snapshot") or {}).get("element") or []) + ((resource.get("differential") or {}).get("element") or [])
+    return _import_metadata_definition(resource, StructureDefinition, "clinical.StructureDefinition", "Structure Definition", {
+        "kind": resource.get("kind") or "",
+        "abstract": resource.get("abstract") if "abstract" in resource else None,
+        "type_code": resource.get("type") or "",
+        "base_definition": resource.get("baseDefinition") or "",
+        "derivation": resource.get("derivation") or "",
+        "element_summary": _compact_json(elements),
+    })
+
+
+def _import_implementation_guide(resource, patient=None):
+    return _import_metadata_definition(resource, ImplementationGuide, "clinical.ImplementationGuide", "Implementation Guide", {
+        "package_id": resource.get("packageId") or "",
+        "fhir_version_summary": ", ".join(resource.get("fhirVersion") or []),
+        "definition_summary": _compact_json(resource.get("definition")),
+    })
+
+
+def _import_search_parameter(resource, patient=None):
+    return _import_metadata_definition(resource, SearchParameter, "clinical.SearchParameter", resource.get("code") or "Search Parameter", {
+        "code": resource.get("code") or "",
+        "base_summary": ", ".join(resource.get("base") or []),
+        "search_type": resource.get("type") or "",
+        "expression": resource.get("expression") or "",
+    })
+
+
+def _import_message_definition(resource, patient=None):
+    return _import_metadata_definition(resource, MessageDefinition, "clinical.MessageDefinition", "Message Definition", {
+        "event": _codeable_text(resource.get("eventCoding")) or resource.get("eventUri") or "",
+        "category": resource.get("category") or "",
+        "response_required": resource.get("responseRequired") or "",
+        "focus_summary": _compact_json(resource.get("focus")),
+    })
+
+
+def _import_operation_definition(resource, patient=None):
+    return _import_metadata_definition(resource, OperationDefinition, "clinical.OperationDefinition", "Operation Definition", {
+        "kind": resource.get("kind") or "",
+        "code": resource.get("code") or "",
+        "resource_summary": ", ".join(resource.get("resource") or []),
+        "system": bool(resource.get("system")),
+        "type_level": bool(resource.get("type")),
+        "instance": bool(resource.get("instance")),
+        "parameter_summary": _compact_json(resource.get("parameter")),
+    })
+
+
+def _import_compartment_definition(resource, patient=None):
+    return _import_metadata_definition(resource, CompartmentDefinition, "clinical.CompartmentDefinition", resource.get("code") or "Compartment Definition", {
+        "code": resource.get("code") or "",
+        "search": bool(resource.get("search")),
+        "resource_summary": _compact_json(resource.get("resource")),
+    })
+
+
+def _import_structure_map(resource, patient=None):
+    return _import_metadata_definition(resource, StructureMap, "clinical.StructureMap", "Structure Map", {
+        "structure_summary": _compact_json(resource.get("structure")),
+        "group_summary": _compact_json(resource.get("group")),
+    })
+
+
+def _import_graph_definition(resource, patient=None):
+    return _import_metadata_definition(resource, GraphDefinition, "clinical.GraphDefinition", "Graph Definition", {
+        "start": resource.get("start") or "",
+        "profile": resource.get("profile") or "",
+        "link_summary": _compact_json(resource.get("link")),
+    })
+
+
+def _import_example_scenario(resource, patient=None):
+    return _import_metadata_definition(resource, ExampleScenario, "clinical.ExampleScenario", "Example Scenario", {
+        "actor_summary": _compact_json(resource.get("actor")),
+        "instance_summary": _compact_json(resource.get("instance")),
+        "process_summary": _compact_json(resource.get("process")),
+    })
+
+
+def _import_naming_system(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.NamingSystem") or NamingSystem()
+    obj.name = resource.get("name") or "Naming System"
+    obj.status = resource.get("status") or ""
+    obj.kind = resource.get("kind") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.description = resource.get("description") or ""
+    obj.unique_id_summary = _compact_json(resource.get("uniqueId"))
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_terminology_capabilities(resource, patient=None):
+    return _import_metadata_definition(resource, TerminologyCapabilities, "clinical.TerminologyCapabilities", "Terminology Capabilities", {
+        "kind": resource.get("kind") or "",
+        "code_system_summary": _compact_json(resource.get("codeSystem")),
+        "expansion_summary": _compact_json(resource.get("expansion")),
+    })
+
+
+def _import_activity_definition(resource, patient=None):
+    return _import_metadata_definition(resource, ActivityDefinition, "clinical.ActivityDefinition", "Activity Definition", {
+        "activity_kind": resource.get("kind") or "",
+        "intent": resource.get("intent") or "",
+        "priority": resource.get("priority") or "",
+        "code": _codeable_text(resource.get("code")) or "",
+        "participant_summary": _compact_json(resource.get("participant")),
+    })
+
+
+def _import_event_definition(resource, patient=None):
+    return _import_metadata_definition(resource, EventDefinition, "clinical.EventDefinition", "Event Definition", {
+        "trigger_summary": _compact_json(resource.get("trigger")),
+    })
+
+
+def _import_specimen_definition(resource, patient=None):
+    specimen_type = _codeable_text(resource.get("typeCollected")) or resource.get("url") or "Specimen Definition"
+    return _import_metadata_definition(resource, SpecimenDefinition, "clinical.SpecimenDefinition", specimen_type, {
+        "specimen_type": _codeable_text(resource.get("typeCollected")) or "",
+        "collection_summary": _compact_json(resource.get("collection")),
+        "type_tested_summary": _compact_json(resource.get("typeTested")),
+    })
+
+def _import_code_system(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.CodeSystem") or CodeSystem()
+    obj.url = resource.get("url") or ""
+    obj.version = resource.get("version") or ""
+    obj.name = resource.get("name") or ""
+    obj.title = resource.get("title") or resource.get("name") or "Code System"
+    obj.status = resource.get("status") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.description = resource.get("description") or ""
+    obj.content = resource.get("content") or ""
+    obj.case_sensitive = resource.get("caseSensitive") if "caseSensitive" in resource else None
+    obj.hierarchy_meaning = resource.get("hierarchyMeaning") or ""
+    obj.concept_summary = _concept_definition_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_value_set(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.ValueSet") or ValueSet()
+    obj.url = resource.get("url") or ""
+    obj.version = resource.get("version") or ""
+    obj.name = resource.get("name") or ""
+    obj.title = resource.get("title") or resource.get("name") or "Value Set"
+    obj.status = resource.get("status") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.description = resource.get("description") or ""
+    obj.immutable = resource.get("immutable") if "immutable" in resource else None
+    obj.compose_summary = _value_set_compose_summary(resource)
+    obj.expansion_summary = _value_set_expansion_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_concept_map(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.ConceptMap") or ConceptMap()
+    obj.url = resource.get("url") or ""
+    obj.version = resource.get("version") or ""
+    obj.name = resource.get("name") or ""
+    obj.title = resource.get("title") or resource.get("name") or "Concept Map"
+    obj.status = resource.get("status") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.description = resource.get("description") or ""
+    obj.source_uri = resource.get("sourceUri") or _display(resource.get("sourceCanonical")) or ""
+    obj.target_uri = resource.get("targetUri") or _display(resource.get("targetCanonical")) or ""
+    obj.group_summary = _concept_map_group_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_library(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.Library") or Library()
+    obj.url = resource.get("url") or ""
+    obj.version = resource.get("version") or ""
+    obj.name = resource.get("name") or ""
+    obj.title = resource.get("title") or resource.get("name") or "Library"
+    obj.status = resource.get("status") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.description = resource.get("description") or ""
+    obj.library_type = _codeable_text(resource.get("type")) or ""
+    obj.subject = _codeable_text(resource.get("subjectCodeableConcept")) or _display(resource.get("subjectReference"))
+    obj.related_artifact_summary = _related_artifact_summary(resource)
+    obj.content_summary = "\n".join(_attachment_summary(item) for item in resource.get("content") or [] if _attachment_summary(item))
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_plan_definition(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.PlanDefinition") or PlanDefinition()
+    obj.url = resource.get("url") or ""
+    obj.version = resource.get("version") or ""
+    obj.name = resource.get("name") or ""
+    obj.title = resource.get("title") or resource.get("name") or "Plan Definition"
+    obj.status = resource.get("status") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.description = resource.get("description") or ""
+    obj.plan_type = _codeable_text(resource.get("type")) or ""
+    obj.subject = _codeable_text(resource.get("subjectCodeableConcept")) or _display(resource.get("subjectReference"))
+    obj.goal_summary = _plan_definition_goal_summary(resource)
+    obj.action_summary = _plan_definition_action_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+def _import_measure(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.Measure") or Measure()
+    obj.url = resource.get("url") or ""
+    obj.version = resource.get("version") or ""
+    obj.name = resource.get("name") or ""
+    obj.title = resource.get("title") or resource.get("name") or "Measure"
+    obj.status = resource.get("status") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.description = resource.get("description") or ""
+    obj.scoring = _codeable_text(resource.get("scoring")) or ""
+    obj.measure_type = ", ".join(text for text in (_codeable_text(value) for value in resource.get("type") or []) if text)
+    obj.group_summary = _measure_group_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_measure_report(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.MeasureReport") or MeasureReport(patient=patient)
+    period = resource.get("period") or {}
+    obj.patient = patient or _reference_as(resource.get("subject"), PatientProfile)
+    obj.measure = _reference_as({"reference": resource.get("measure") or ""}, Measure)
+    obj.status = resource.get("status") or ""
+    obj.report_type = resource.get("type") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.period_start = _date(period.get("start"))
+    obj.period_end = _date(period.get("end"))
+    obj.improvement_notation = _codeable_text(resource.get("improvementNotation")) or ""
+    obj.group_summary = _measure_report_group_summary(resource)
+    obj.evaluated_resource_summary = "\n".join(_display(ref) for ref in resource.get("evaluatedResource") or [] if _display(ref))
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_test_script(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.TestScript") or TestScript()
+    obj.url = resource.get("url") or ""
+    obj.version = resource.get("version") or ""
+    obj.name = resource.get("name") or ""
+    obj.title = resource.get("title") or resource.get("name") or "Test script"
+    obj.status = resource.get("status") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date"))
+    obj.description = resource.get("description") or ""
+    obj.fixture_summary = _test_script_fixture_summary(resource)
+    obj.test_summary = _test_script_action_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_test_report(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.TestReport") or TestReport()
+    obj.test_script = _reference_as(resource.get("testScript"), TestScript)
+    obj.name = resource.get("name") or ""
+    obj.status = resource.get("status") or ""
+    obj.result = resource.get("result") or ""
+    obj.score = _decimal(resource.get("score"))
+    obj.tester = resource.get("tester") or ""
+    obj.issued = _datetime(resource.get("issued"))
+    obj.participant_summary = _test_report_participant_summary(resource)
+    obj.action_summary = _test_report_action_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_coverage_eligibility_request(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.CoverageEligibilityRequest") or CoverageEligibilityRequest(patient=patient)
+    serviced = resource.get("servicedPeriod") or {}
+    obj.patient = patient or _reference_as(resource.get("patient"), PatientProfile)
+    obj.insurer = _reference_as(resource.get("insurer"), Organization)
+    obj.provider_organization = _reference_as(resource.get("provider"), Organization)
+    obj.status = resource.get("status") or ""
+    obj.priority = _codeable_text(resource.get("priority")) or ""
+    obj.purpose = ", ".join(resource.get("purpose") or [])
+    obj.created_date = _date(resource.get("created"))
+    obj.serviced_start = _date(resource.get("servicedDate") or serviced.get("start"))
+    obj.serviced_end = _date(serviced.get("end"))
+    obj.insurance_summary = _eligibility_insurance_summary(resource)
+    obj.item_summary = _eligibility_item_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_coverage_eligibility_response(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.CoverageEligibilityResponse") or CoverageEligibilityResponse(patient=patient)
+    obj.patient = patient or _reference_as(resource.get("patient"), PatientProfile)
+    obj.request = _reference_as(resource.get("request"), CoverageEligibilityRequest)
+    obj.insurer = _reference_as(resource.get("insurer"), Organization)
+    obj.status = resource.get("status") or ""
+    obj.purpose = ", ".join(resource.get("purpose") or [])
+    obj.outcome = resource.get("outcome") or ""
+    obj.disposition = resource.get("disposition") or ""
+    obj.created_date = _date(resource.get("created"))
+    obj.insurance_summary = _eligibility_response_insurance_summary(resource)
+    obj.error_summary = _claim_response_error_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_enrollment_request(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.EnrollmentRequest") or EnrollmentRequest(patient=patient)
+    obj.patient = patient or _reference_as(resource.get("candidate"), PatientProfile)
+    obj.insurer = _reference_as(resource.get("insurer"), Organization)
+    obj.provider = _reference_as(resource.get("provider"), Organization)
+    obj.coverage = _reference_as(resource.get("coverage"), Coverage)
+    obj.status = resource.get("status") or ""
+    obj.created_date = _date(resource.get("created"))
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_enrollment_response(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.EnrollmentResponse") or EnrollmentResponse()
+    obj.request = _reference_as(resource.get("request"), EnrollmentRequest)
+    obj.organization = _reference_as(resource.get("organization"), Organization)
+    obj.status = resource.get("status") or ""
+    obj.outcome = resource.get("outcome") or ""
+    obj.disposition = resource.get("disposition") or ""
+    obj.created_date = _date(resource.get("created"))
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_payment_notice(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.PaymentNotice") or PaymentNotice(patient=patient)
+    obj.patient = patient
+    obj.recipient = _reference_as(resource.get("recipient"), Organization)
+    obj.status = resource.get("status") or ""
+    obj.payment_status = _codeable_text(resource.get("paymentStatus")) or ""
+    obj.created_date = _date(resource.get("created"))
+    obj.payment_date = _date(resource.get("paymentDate"))
+    obj.amount = _money_text(resource.get("amount"))
+    obj.request_summary = _display(resource.get("request"))
+    obj.response_summary = _display(resource.get("response"))
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
+def _import_payment_reconciliation(resource, patient=None):
+    obj = _object_for_resource(resource, "clinical.PaymentReconciliation") or PaymentReconciliation()
+    obj.payment_issuer = _reference_as(resource.get("paymentIssuer"), Organization)
+    obj.status = resource.get("status") or ""
+    obj.outcome = resource.get("outcome") or ""
+    obj.disposition = resource.get("disposition") or ""
+    obj.created_date = _date(resource.get("created"))
+    obj.payment_date = _date(resource.get("paymentDate"))
+    obj.payment_amount = _money_text(resource.get("paymentAmount"))
+    obj.detail_summary = _payment_reconciliation_detail_summary(resource)
+    obj.process_note_summary = _process_note_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
 
 def _import_coverage(resource, patient):
     obj = _object_for_resource(resource, "clinical.Coverage") or Coverage(patient=patient)
@@ -2241,17 +2795,31 @@ def _object_for_resource(resource, django_model):
     app_label, model_name = django_model.split(".")
     for model in (
         PatientProfile,
+        ActivityDefinition,
         Account,
+    ActivityDefinition,
         Appointment,
         AuditEvent,
+    CapabilityStatement,
         AppointmentResponse,
     AuditEvent,
+        CapabilityStatement,
+    CapabilityStatement,
         ChargeItem,
+    CompartmentDefinition,
         Claim,
         ClaimResponse,
+        CodeSystem,
+        CompartmentDefinition,
+        ConceptMap,
+    EventDefinition,
+    ExampleScenario,
+    CoverageEligibilityRequest,
+    CoverageEligibilityResponse,
         BodyStructure,
         Condition,
         Account,
+    ActivityDefinition,
     AdverseEvent,
         Allergy,
         ClinicalImpression,
@@ -2261,6 +2829,8 @@ def _object_for_resource(resource, django_model):
     DeviceDefinition,
         DiagnosticReport,
         DocumentManifest,
+    EnrollmentRequest,
+    EnrollmentResponse,
     Invoice,
         BinaryResource,
         Endpoint,
@@ -2275,12 +2845,16 @@ def _object_for_resource(resource, django_model):
         FHIRGroup,
         FHIRGroupMember,
         FHIRList,
+    GraphDefinition,
         Flag,
         GuidanceResponse,
         Goal,
         ImagingStudy,
         InsurancePlan,
         Medication,
+    Library,
+    Measure,
+    MeasureReport,
         MedicationAdministration,
         MedicationCatalog,
         MedicationDispense,
@@ -2288,12 +2862,18 @@ def _object_for_resource(resource, django_model):
         Immunization,
         ImmunizationEvaluation,
         ImmunizationRecommendation,
+    ImplementationGuide,
         Media,
+    MessageDefinition,
         MolecularSequence,
+        NamingSystem,
         NutritionOrder,
+    NamingSystem,
         Observation,
     ObservationDefinition,
+    OperationDefinition,
         Specimen,
+    SpecimenDefinition,
         Device,
         Communication,
         CommunicationRequest,
@@ -2306,7 +2886,10 @@ def _object_for_resource(resource, django_model):
         CarePlan,
         CareTeamParticipant,
         ClinicalDocument,
-        Person,
+        PaymentNotice,
+    PaymentReconciliation,
+    PlanDefinition,
+    Person,
         PersonLink,
         Practitioner,
         PractitionerRole,
@@ -2320,13 +2903,24 @@ def _object_for_resource(resource, django_model):
     ResearchSubject,
         RiskAssessment,
         Schedule,
+        SearchParameter,
+    SearchParameter,
         ServiceRequest,
         Slot,
+        SpecimenDefinition,
         SupplyDelivery,
         SupplyRequest,
+    StructureDefinition,
+    StructureMap,
         Substance,
+        StructureDefinition,
+        StructureMap,
         Task,
-        VisionPrescription,
+        ValueSet,
+        TestScript,
+    TestReport,
+    TerminologyCapabilities,
+    VisionPrescription,
         Organization,
         Location,
     ):
@@ -2340,10 +2934,40 @@ def _object_for_reference(reference):
         return None
     resource_type, resource_id = reference.split("/", 1)
     model_by_resource_type = {
+        "ActivityDefinition": "clinical.ActivityDefinition",
         "Account": "clinical.Account",
         "Appointment": "clinical.Appointment",
         "AppointmentResponse": "clinical.AppointmentResponse",
         "AuditEvent": "clinical.AuditEvent",
+        "CapabilityStatement": "clinical.CapabilityStatement",
+        "CodeSystem": "clinical.CodeSystem",
+        "CompartmentDefinition": "clinical.CompartmentDefinition",
+        "ConceptMap": "clinical.ConceptMap",
+        "EventDefinition": "clinical.EventDefinition",
+        "ExampleScenario": "clinical.ExampleScenario",
+        "GraphDefinition": "clinical.GraphDefinition",
+        "ImplementationGuide": "clinical.ImplementationGuide",
+        "CoverageEligibilityRequest": "clinical.CoverageEligibilityRequest",
+        "CoverageEligibilityResponse": "clinical.CoverageEligibilityResponse",
+        "EnrollmentRequest": "clinical.EnrollmentRequest",
+        "EnrollmentResponse": "clinical.EnrollmentResponse",
+        "Library": "clinical.Library",
+        "MessageDefinition": "clinical.MessageDefinition",
+        "NamingSystem": "clinical.NamingSystem",
+        "Measure": "clinical.Measure",
+        "OperationDefinition": "clinical.OperationDefinition",
+        "MeasureReport": "clinical.MeasureReport",
+        "PaymentNotice": "clinical.PaymentNotice",
+        "PaymentReconciliation": "clinical.PaymentReconciliation",
+        "PlanDefinition": "clinical.PlanDefinition",
+        "SearchParameter": "clinical.SearchParameter",
+        "SpecimenDefinition": "clinical.SpecimenDefinition",
+        "StructureDefinition": "clinical.StructureDefinition",
+        "StructureMap": "clinical.StructureMap",
+        "TerminologyCapabilities": "clinical.TerminologyCapabilities",
+        "TestScript": "clinical.TestScript",
+        "TestReport": "clinical.TestReport",
+        "ValueSet": "clinical.ValueSet",
         "ChargeItem": "clinical.ChargeItem",
         "Claim": "clinical.Claim",
         "ClaimResponse": "clinical.ClaimResponse",
@@ -2430,7 +3054,7 @@ def _object_for_reference(reference):
 
 
 def _resolve_patient(resource, patient_by_reference, default_patient=None):
-    subject = resource.get("subject") or resource.get("patient") or resource.get("beneficiary") or resource.get("individual") or resource.get("recipient")
+    subject = resource.get("subject") or resource.get("patient") or resource.get("beneficiary") or resource.get("individual") or resource.get("recipient") or resource.get("candidate")
     reference = subject.get("reference") if isinstance(subject, dict) else None
     if not reference and isinstance(subject, list):
         for subject_item in subject:
@@ -2459,6 +3083,10 @@ def _resolve_patient(resource, patient_by_reference, default_patient=None):
         actor_reference = resource["actor"].get("reference") or ""
         if actor_reference.startswith("Patient/"):
             reference = actor_reference
+    if not reference and isinstance(resource.get("request"), dict):
+        request_obj = _object_for_reference(resource["request"].get("reference"))
+        if hasattr(request_obj, "patient"):
+            return request_obj.patient
     if reference in patient_by_reference:
         return patient_by_reference[reference]
     if reference:
@@ -2844,6 +3472,205 @@ def _audit_event_entity_summary(resource):
         detail = ", ".join((d.get("type") or "") for d in item.get("detail") or [] if d.get("type"))
         parts = [_display(item.get("what")), _codeable_text(item.get("type")), _codeable_text(item.get("role")), item.get("name") or "", detail]
         line = " / ".join(part for part in parts if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+def _compact_json(value):
+    if value in (None, [], {}):
+        return ""
+    return json.dumps(value, sort_keys=True)[:4000]
+
+def _concept_definition_summary(resource):
+    lines = []
+    for concept in resource.get("concept") or []:
+        line = " / ".join(part for part in [concept.get("code") or "", concept.get("display") or "", concept.get("definition") or ""] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _value_set_compose_summary(resource):
+    compose = resource.get("compose") or {}
+    lines = []
+    for include in compose.get("include") or []:
+        concepts = ", ".join(concept.get("code") or concept.get("display") or "" for concept in include.get("concept") or [] if concept.get("code") or concept.get("display"))
+        filters = ", ".join(" ".join(str(part) for part in [flt.get("property"), flt.get("op"), flt.get("value")] if part) for flt in include.get("filter") or [])
+        line = " / ".join(part for part in [include.get("system") or "", include.get("version") or "", concepts, filters] if part)
+        if line:
+            lines.append(line)
+    for exclude in compose.get("exclude") or []:
+        line = "exclude " + (exclude.get("system") or "")
+        if line.strip() != "exclude":
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _value_set_expansion_summary(resource):
+    expansion = resource.get("expansion") or {}
+    lines = []
+    for item in expansion.get("contains") or []:
+        line = " / ".join(part for part in [item.get("system") or "", item.get("code") or "", item.get("display") or ""] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _concept_map_group_summary(resource):
+    lines = []
+    for group in resource.get("group") or []:
+        for element in group.get("element") or []:
+            targets = ", ".join(" / ".join(part for part in [target.get("code") or "", target.get("display") or "", target.get("equivalence") or ""] if part) for target in element.get("target") or [])
+            line = " / ".join(part for part in [group.get("source") or "", group.get("target") or "", element.get("code") or "", element.get("display") or "", targets] if part)
+            if line:
+                lines.append(line)
+    return "\n".join(lines)
+
+
+def _related_artifact_summary(resource):
+    lines = []
+    for item in resource.get("relatedArtifact") or []:
+        line = " / ".join(part for part in [item.get("type") or "", item.get("label") or "", item.get("display") or "", item.get("url") or ""] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _plan_definition_goal_summary(resource):
+    lines = []
+    for goal in resource.get("goal") or []:
+        targets = ", ".join(_codeable_text(target.get("measure")) for target in goal.get("target") or [] if _codeable_text(target.get("measure")))
+        line = " / ".join(part for part in [_codeable_text(goal.get("category")), goal.get("description", {}).get("text") or _codeable_text(goal.get("description")), targets] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _plan_definition_action_summary(resource):
+    lines = []
+    for action in resource.get("action") or []:
+        triggers = ", ".join(trigger.get("type") or "" for trigger in action.get("trigger") or [] if trigger.get("type"))
+        line = " / ".join(part for part in [action.get("title") or "", action.get("description") or "", _codeable_text(action.get("code")), triggers] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+def _measure_group_summary(resource):
+    lines = []
+    for group in resource.get("group") or []:
+        populations = ", ".join(_codeable_text(pop.get("code")) for pop in group.get("population") or [] if _codeable_text(pop.get("code")))
+        stratifiers = ", ".join(_codeable_text(strat.get("code")) for strat in group.get("stratifier") or [] if _codeable_text(strat.get("code")))
+        line = " / ".join(part for part in [group.get("id") or "", populations, stratifiers] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _measure_report_group_summary(resource):
+    lines = []
+    for group in resource.get("group") or []:
+        populations = []
+        for pop in group.get("population") or []:
+            populations.append(" / ".join(part for part in [_codeable_text(pop.get("code")), str(pop.get("count") or "")] if part))
+        score = _age_text(group.get("measureScore"))
+        line = " / ".join(part for part in [group.get("id") or "", "; ".join(filter(None, populations)), score] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _test_script_fixture_summary(resource):
+    lines = []
+    for fixture in resource.get("fixture") or []:
+        line = " / ".join(part for part in ["autocreate" if fixture.get("autocreate") else "", "autodelete" if fixture.get("autodelete") else "", _display(fixture.get("resource"))] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _test_script_action_summary(resource):
+    lines = []
+    for section in [resource.get("setup") or {}] + (resource.get("test") or []) + [resource.get("teardown") or {}]:
+        for action in section.get("action") or []:
+            operation = action.get("operation") or {}
+            assertion = action.get("assert") or {}
+            line = " / ".join(part for part in [section.get("name") or "", operation.get("type", {}).get("code") if isinstance(operation.get("type"), dict) else "", assertion.get("description") or assertion.get("operator") or ""] if part)
+            if line:
+                lines.append(line)
+    return "\n".join(lines)
+
+
+def _test_report_participant_summary(resource):
+    lines = []
+    for item in resource.get("participant") or []:
+        line = " / ".join(part for part in [item.get("type") or "", item.get("uri") or "", item.get("display") or ""] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _test_report_action_summary(resource):
+    lines = []
+    for section in [resource.get("setup") or {}] + (resource.get("test") or []) + [resource.get("teardown") or {}]:
+        for action in section.get("action") or []:
+            operation = action.get("operation") or {}
+            assertion = action.get("assert") or {}
+            line = " / ".join(part for part in [section.get("name") or "", operation.get("result") or "", assertion.get("result") or "", operation.get("message") or assertion.get("message") or ""] if part)
+            if line:
+                lines.append(line)
+    return "\n".join(lines)
+
+
+def _eligibility_insurance_summary(resource):
+    lines = []
+    for item in resource.get("insurance") or []:
+        line = " / ".join(part for part in ["focal" if item.get("focal") else "", _display(item.get("coverage")), item.get("businessArrangement") or ""] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _eligibility_item_summary(resource):
+    lines = []
+    for item in resource.get("item") or []:
+        category = _codeable_text(item.get("category")) or ""
+        product = _codeable_text(item.get("productOrService")) or ""
+        diagnosis = ", ".join(
+            part
+            for part in (_codeable_text(value.get("diagnosisCodeableConcept")) or _display(value.get("diagnosisReference")) for value in item.get("diagnosis") or [])
+            if part
+        )
+        line = " / ".join(part for part in [category, product, _display(item.get("provider")), diagnosis] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _eligibility_response_insurance_summary(resource):
+    lines = []
+    for insurance in resource.get("insurance") or []:
+        items = []
+        for item in insurance.get("item") or []:
+            benefits = ", ".join(_codeable_text(benefit.get("type")) for benefit in item.get("benefit") or [] if _codeable_text(benefit.get("type")))
+            items.append(" / ".join(part for part in [_codeable_text(item.get("category")), _codeable_text(item.get("productOrService")), benefits] if part))
+        line = " / ".join(part for part in [_display(insurance.get("coverage")), "in force" if insurance.get("inforce") else "", "; ".join(filter(None, items))] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _payment_reconciliation_detail_summary(resource):
+    lines = []
+    for item in resource.get("detail") or []:
+        line = " / ".join(part for part in [_codeable_text(item.get("type")), _display(item.get("request")), _display(item.get("response")), _money_text(item.get("amount"))] if part)
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _process_note_summary(resource):
+    lines = []
+    for note in resource.get("processNote") or []:
+        line = " / ".join(part for part in [note.get("type") or "", note.get("text") or ""] if part)
         if line:
             lines.append(line)
     return "\n".join(lines)
@@ -4864,3 +5691,17 @@ def _decimal(value):
         return Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
         return None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
