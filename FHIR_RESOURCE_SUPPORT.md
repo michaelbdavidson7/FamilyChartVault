@@ -27,6 +27,39 @@ Status legend:
 - `StructureDefinition` -> `clinical.StructureDefinition`
 - `StructureMap` -> `clinical.StructureMap`
 - `TerminologyCapabilities` -> `clinical.TerminologyCapabilities`
+- `CatalogEntry` -> `clinical.CatalogEntry`
+- `Basic` -> `clinical.Basic`
+- `Linkage` -> `clinical.Linkage`
+- `MessageHeader` -> `clinical.MessageHeader`
+- `OperationOutcome` -> `clinical.OperationOutcome`
+- `Parameters` -> `clinical.Parameters`
+- `Subscription` -> `clinical.Subscription`
+- `BiologicallyDerivedProduct` -> `clinical.BiologicallyDerivedProduct`
+- `VerificationResult` -> `clinical.VerificationResult`
+- `ChargeItemDefinition` -> `clinical.ChargeItemDefinition`
+- `Contract` -> `clinical.Contract`
+- `ResearchDefinition` -> `clinical.ResearchDefinition`
+- `ResearchElementDefinition` -> `clinical.ResearchElementDefinition`
+- `Evidence` -> `clinical.Evidence`
+- `EvidenceVariable` -> `clinical.EvidenceVariable`
+- `EffectEvidenceSynthesis` -> `clinical.EffectEvidenceSynthesis`
+- `RiskEvidenceSynthesis` -> `clinical.RiskEvidenceSynthesis`
+- `MedicinalProduct` -> `clinical.MedicinalProduct`
+- `MedicinalProductAuthorization` -> `clinical.MedicinalProductAuthorization`
+- `MedicinalProductContraindication` -> `clinical.MedicinalProductContraindication`
+- `MedicinalProductIndication` -> `clinical.MedicinalProductIndication`
+- `MedicinalProductIngredient` -> `clinical.MedicinalProductIngredient`
+- `MedicinalProductInteraction` -> `clinical.MedicinalProductInteraction`
+- `MedicinalProductManufactured` -> `clinical.MedicinalProductManufactured`
+- `MedicinalProductPackaged` -> `clinical.MedicinalProductPackaged`
+- `MedicinalProductPharmaceutical` -> `clinical.MedicinalProductPharmaceutical`
+- `MedicinalProductUndesirableEffect` -> `clinical.MedicinalProductUndesirableEffect`
+- `SubstanceNucleicAcid` -> `clinical.SubstanceNucleicAcid`
+- `SubstancePolymer` -> `clinical.SubstancePolymer`
+- `SubstanceProtein` -> `clinical.SubstanceProtein`
+- `SubstanceReferenceInformation` -> `clinical.SubstanceReferenceInformation`
+- `SubstanceSpecification` -> `clinical.SubstanceSpecification`
+- `SubstanceSourceMaterial` -> `clinical.SubstanceSourceMaterial`
 - `Account` -> `clinical.Account`
 - `AdverseEvent` -> `clinical.AdverseEvent`
 - `AllergyIntolerance` -> `clinical.Allergy`
@@ -170,15 +203,15 @@ Status legend:
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `CatalogEntry` | Snapshot candidate | Catalog metadata. |
-| `Basic` | Snapshot candidate | Generic extension resource. |
+| `CatalogEntry` | First-class | Catalog metadata. |
+| `Basic` | First-class | Generic extension resource. |
 | `Binary` | First-class | Needed for external/inline document or media content. |
 | `Bundle` | Parser/container | Extracted into contained resources; not stored as a model. |
-| `Linkage` | Snapshot candidate | Resource identity/linkage metadata. |
-| `MessageHeader` | Snapshot candidate | Messaging envelope. |
-| `OperationOutcome` | Snapshot candidate | Error/result payload. |
-| `Parameters` | Snapshot candidate | Operation parameters. |
-| `Subscription` | Snapshot candidate | Server subscription metadata. |
+| `Linkage` | First-class | Resource identity/linkage metadata. |
+| `MessageHeader` | First-class | Messaging envelope. |
+| `OperationOutcome` | First-class | Error/result payload. |
+| `Parameters` | First-class | Operation parameters. |
+| `Subscription` | First-class | Server subscription metadata. |
 
 ## Base
 
@@ -208,7 +241,7 @@ Status legend:
 | Resource | Status | Notes |
 | --- | --- | --- |
 | `Substance` | First-class | Useful for allergies/medications/labs; likely catalog-style. |
-| `BiologicallyDerivedProduct` | Snapshot candidate | Blood/tissue/product details. |
+| `BiologicallyDerivedProduct` | First-class | Blood/tissue/product details. |
 | `Device` | First-class | Patient/device inventory and references. |
 | `DeviceMetric` | First-class | Device measurement channels/configuration. |
 
@@ -221,7 +254,7 @@ Status legend:
 | `AppointmentResponse` | First-class | Appointment participant response. |
 | `Schedule` | First-class | Availability schedule. |
 | `Slot` | First-class | Bookable time slot. |
-| `VerificationResult` | Snapshot candidate | Verification metadata. |
+| `VerificationResult` | First-class | Verification metadata. |
 | `Encounter` | First-class | Visit/action record. |
 | `EpisodeOfCare` | First-class | Larger care episode grouping. |
 | `Flag` | First-class | Patient warnings/alerts. |
@@ -327,8 +360,8 @@ Status legend:
 | --- | --- | --- |
 | `Account` | First-class | Billing/account grouping. |
 | `ChargeItem` | First-class | Charge line item. |
-| `ChargeItemDefinition` | Snapshot candidate | Charge item definition. |
-| `Contract` | Snapshot candidate | Contract/legal agreement. |
+| `ChargeItemDefinition` | First-class | Charge item definition. |
+| `Contract` | First-class | Contract/legal agreement. |
 | `ExplanationOfBenefit` | First-class | EOB/claims summary; useful for personal records. |
 | `InsurancePlan` | First-class | Insurance plan details. |
 
@@ -357,12 +390,12 @@ Status legend:
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `ResearchDefinition` | Snapshot candidate | Evidence/research metadata. |
-| `ResearchElementDefinition` | Snapshot candidate | Evidence/research metadata. |
-| `Evidence` | Snapshot candidate | Evidence artifact. |
-| `EvidenceVariable` | Snapshot candidate | Evidence variable definition. |
-| `EffectEvidenceSynthesis` | Snapshot candidate | Evidence synthesis. |
-| `RiskEvidenceSynthesis` | Snapshot candidate | Risk evidence synthesis. |
+| `ResearchDefinition` | First-class | Evidence/research metadata. |
+| `ResearchElementDefinition` | First-class | Evidence/research metadata. |
+| `Evidence` | First-class | Evidence artifact. |
+| `EvidenceVariable` | First-class | Evidence variable definition. |
+| `EffectEvidenceSynthesis` | First-class | Evidence synthesis. |
+| `RiskEvidenceSynthesis` | First-class | Risk evidence synthesis. |
 
 ### Quality Reporting & Testing
 
@@ -377,26 +410,27 @@ Status legend:
 
 | Resource | Status | Notes |
 | --- | --- | --- |
-| `MedicinalProduct` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductAuthorization` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductContraindication` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductIndication` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductIngredient` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductInteraction` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductManufactured` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductPackaged` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductPharmaceutical` | Snapshot candidate | Medication/product definition. |
-| `MedicinalProductUndesirableEffect` | Snapshot candidate | Medication/product definition. |
-| `SubstanceNucleicAcid` | Snapshot candidate | Substance definition. |
-| `SubstancePolymer` | Snapshot candidate | Substance definition. |
-| `SubstanceProtein` | Snapshot candidate | Substance definition. |
-| `SubstanceReferenceInformation` | Snapshot candidate | Substance definition. |
-| `SubstanceSpecification` | Snapshot candidate | Substance definition. |
-| `SubstanceSourceMaterial` | Snapshot candidate | Substance definition. |
+| `MedicinalProduct` | First-class | Medication/product definition. |
+| `MedicinalProductAuthorization` | First-class | Medication/product definition. |
+| `MedicinalProductContraindication` | First-class | Medication/product definition. |
+| `MedicinalProductIndication` | First-class | Medication/product definition. |
+| `MedicinalProductIngredient` | First-class | Medication/product definition. |
+| `MedicinalProductInteraction` | First-class | Medication/product definition. |
+| `MedicinalProductManufactured` | First-class | Medication/product definition. |
+| `MedicinalProductPackaged` | First-class | Medication/product definition. |
+| `MedicinalProductPharmaceutical` | First-class | Medication/product definition. |
+| `MedicinalProductUndesirableEffect` | First-class | Medication/product definition. |
+| `SubstanceNucleicAcid` | First-class | Substance definition. |
+| `SubstancePolymer` | First-class | Substance definition. |
+| `SubstanceProtein` | First-class | Substance definition. |
+| `SubstanceReferenceInformation` | First-class | Substance definition. |
+| `SubstanceSpecification` | First-class | Substance definition. |
+| `SubstanceSourceMaterial` | First-class | Substance definition. |
 
 ## Next Completeness Step
 
 The app preserves unsupported but well-formed FHIR R4 resources as valid `FHIRResourceSnapshot` rows with `import_status="snapshot_only"`. First-class models can then be added selectively based on real imported data and patient-facing value.
+
 
 
 

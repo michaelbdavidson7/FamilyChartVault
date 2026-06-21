@@ -3,6 +3,39 @@ from django.contrib import admin
 from django.db import models
 from .models import (
     Account,
+    SubstanceSourceMaterial,
+    SubstanceSpecification,
+    SubstanceReferenceInformation,
+    SubstanceProtein,
+    SubstancePolymer,
+    SubstanceNucleicAcid,
+    MedicinalProductUndesirableEffect,
+    MedicinalProductPharmaceutical,
+    MedicinalProductPackaged,
+    MedicinalProductManufactured,
+    MedicinalProductInteraction,
+    MedicinalProductIngredient,
+    MedicinalProductIndication,
+    MedicinalProductContraindication,
+    MedicinalProductAuthorization,
+    MedicinalProduct,
+    RiskEvidenceSynthesis,
+    EffectEvidenceSynthesis,
+    EvidenceVariable,
+    Evidence,
+    ResearchElementDefinition,
+    ResearchDefinition,
+    Contract,
+    ChargeItemDefinition,
+    VerificationResult,
+    BiologicallyDerivedProduct,
+    Subscription,
+    Parameters,
+    OperationOutcome,
+    MessageHeader,
+    Linkage,
+    Basic,
+    CatalogEntry,
     ActivityDefinition,
     AdverseEvent,
     Allergy,
@@ -1385,8 +1418,50 @@ class CanonicalMetadataAdmin(admin.ModelAdmin):
     search_fields = ("url", "name", "title", "publisher", "description", "notes")
     list_filter = ("status", "publisher")
     ordering = ("title", "version")
+class CompactFHIRResourceAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "status", "version", "publisher", "date")
+    list_display_links = ("title",)
+    search_fields = ("url", "name", "title", "status", "publisher", "description", "summary", "notes")
+    list_filter = ("status", "publisher")
+    ordering = ("title", "name", "id")
 
 
+for compact_model in (
+    CatalogEntry,
+    Basic,
+    Linkage,
+    MessageHeader,
+    OperationOutcome,
+    Parameters,
+    Subscription,
+    BiologicallyDerivedProduct,
+    VerificationResult,
+    ChargeItemDefinition,
+    Contract,
+    ResearchDefinition,
+    ResearchElementDefinition,
+    Evidence,
+    EvidenceVariable,
+    EffectEvidenceSynthesis,
+    RiskEvidenceSynthesis,
+    MedicinalProduct,
+    MedicinalProductAuthorization,
+    MedicinalProductContraindication,
+    MedicinalProductIndication,
+    MedicinalProductIngredient,
+    MedicinalProductInteraction,
+    MedicinalProductManufactured,
+    MedicinalProductPackaged,
+    MedicinalProductPharmaceutical,
+    MedicinalProductUndesirableEffect,
+    SubstanceNucleicAcid,
+    SubstancePolymer,
+    SubstanceProtein,
+    SubstanceReferenceInformation,
+    SubstanceSpecification,
+    SubstanceSourceMaterial,
+):
+    admin.site.register(compact_model, CompactFHIRResourceAdmin)
 @admin.register(CapabilityStatement)
 class CapabilityStatementAdmin(CanonicalMetadataAdmin):
     search_fields = CanonicalMetadataAdmin.search_fields + ("kind", "fhir_version", "format_summary", "rest_summary")
@@ -1593,6 +1668,9 @@ class LocationAdmin(admin.ModelAdmin):
     @admin.display(description="Care teams")
     def care_team_count(self, obj):
         return obj.care_team_participations.count()
+
+
+
 
 
 

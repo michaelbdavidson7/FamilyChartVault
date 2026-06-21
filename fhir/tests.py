@@ -2061,8 +2061,8 @@ class FHIRImportTests(TestCase):
     def test_unsupported_resource_is_preserved_as_valid_snapshot_only(self):
         result = import_fhir_json(
             {
-                "resourceType": "OperationOutcome",
-                "id": "operation-outcome-1",
+                "resourceType": "CustomUnsupported",
+                "id": "custom-unsupported-1",
                 "issue": [{"severity": "information", "code": "informational"}],
             }
         )
@@ -2075,7 +2075,7 @@ class FHIRImportTests(TestCase):
         self.assertTrue(snapshot.is_valid)
         self.assertEqual(snapshot.import_status, FHIRResourceSnapshot.IMPORT_STATUS_SNAPSHOT_ONLY)
         self.assertEqual(snapshot.validation_errors, [])
-        self.assertEqual(snapshot.resource_type, "OperationOutcome")
+        self.assertEqual(snapshot.resource_type, "CustomUnsupported")
 
     def test_loads_fhir_json_rejects_invalid_json(self):
         with self.assertRaises(ValueError):
@@ -2301,6 +2301,7 @@ class FHIRImportTests(TestCase):
         self.assertEqual(PatientProfile.objects.filter(first_name="Maya", last_name="Rivera").count(), 0)
         messages = [str(message) for message in get_messages(response.wsgi_request)]
         self.assertTrue(any("database backup failed" in message for message in messages))
+
 
 
 

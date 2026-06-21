@@ -11,6 +11,39 @@ from django.utils.dateparse import parse_date, parse_datetime
 
 from clinical.models import (
     Account,
+    SubstanceSourceMaterial,
+    SubstanceSpecification,
+    SubstanceReferenceInformation,
+    SubstanceProtein,
+    SubstancePolymer,
+    SubstanceNucleicAcid,
+    MedicinalProductUndesirableEffect,
+    MedicinalProductPharmaceutical,
+    MedicinalProductPackaged,
+    MedicinalProductManufactured,
+    MedicinalProductInteraction,
+    MedicinalProductIngredient,
+    MedicinalProductIndication,
+    MedicinalProductContraindication,
+    MedicinalProductAuthorization,
+    MedicinalProduct,
+    RiskEvidenceSynthesis,
+    EffectEvidenceSynthesis,
+    EvidenceVariable,
+    Evidence,
+    ResearchElementDefinition,
+    ResearchDefinition,
+    Contract,
+    ChargeItemDefinition,
+    VerificationResult,
+    BiologicallyDerivedProduct,
+    Subscription,
+    Parameters,
+    OperationOutcome,
+    MessageHeader,
+    Linkage,
+    Basic,
+    CatalogEntry,
     ActivityDefinition,
     AdverseEvent,
     Allergy,
@@ -131,10 +164,79 @@ from patients.models import PatientProfile
 
 from .models import FHIRLink, FHIRResourceSnapshot
 
+FHIR_COMPACT_RESOURCE_MODELS = {
+    "CatalogEntry": CatalogEntry,
+    "Basic": Basic,
+    "Linkage": Linkage,
+    "MessageHeader": MessageHeader,
+    "OperationOutcome": OperationOutcome,
+    "Parameters": Parameters,
+    "Subscription": Subscription,
+    "BiologicallyDerivedProduct": BiologicallyDerivedProduct,
+    "VerificationResult": VerificationResult,
+    "ChargeItemDefinition": ChargeItemDefinition,
+    "Contract": Contract,
+    "ResearchDefinition": ResearchDefinition,
+    "ResearchElementDefinition": ResearchElementDefinition,
+    "Evidence": Evidence,
+    "EvidenceVariable": EvidenceVariable,
+    "EffectEvidenceSynthesis": EffectEvidenceSynthesis,
+    "RiskEvidenceSynthesis": RiskEvidenceSynthesis,
+    "MedicinalProduct": MedicinalProduct,
+    "MedicinalProductAuthorization": MedicinalProductAuthorization,
+    "MedicinalProductContraindication": MedicinalProductContraindication,
+    "MedicinalProductIndication": MedicinalProductIndication,
+    "MedicinalProductIngredient": MedicinalProductIngredient,
+    "MedicinalProductInteraction": MedicinalProductInteraction,
+    "MedicinalProductManufactured": MedicinalProductManufactured,
+    "MedicinalProductPackaged": MedicinalProductPackaged,
+    "MedicinalProductPharmaceutical": MedicinalProductPharmaceutical,
+    "MedicinalProductUndesirableEffect": MedicinalProductUndesirableEffect,
+    "SubstanceNucleicAcid": SubstanceNucleicAcid,
+    "SubstancePolymer": SubstancePolymer,
+    "SubstanceProtein": SubstanceProtein,
+    "SubstanceReferenceInformation": SubstanceReferenceInformation,
+    "SubstanceSpecification": SubstanceSpecification,
+    "SubstanceSourceMaterial": SubstanceSourceMaterial,
+}
+
+
 
 SUPPORTED_RESOURCE_TYPES = {
     "Patient",
     "Account",
+    "SubstanceSourceMaterial",
+    "SubstanceSpecification",
+    "SubstanceReferenceInformation",
+    "SubstanceProtein",
+    "SubstancePolymer",
+    "SubstanceNucleicAcid",
+    "MedicinalProductUndesirableEffect",
+    "MedicinalProductPharmaceutical",
+    "MedicinalProductPackaged",
+    "MedicinalProductManufactured",
+    "MedicinalProductInteraction",
+    "MedicinalProductIngredient",
+    "MedicinalProductIndication",
+    "MedicinalProductContraindication",
+    "MedicinalProductAuthorization",
+    "MedicinalProduct",
+    "RiskEvidenceSynthesis",
+    "EffectEvidenceSynthesis",
+    "EvidenceVariable",
+    "ResearchElementDefinition",
+    "ResearchDefinition",
+    "Contract",
+    "ChargeItemDefinition",
+    "VerificationResult",
+    "BiologicallyDerivedProduct",
+    "Subscription",
+    "Parameters",
+    "OperationOutcome",
+    "MessageHeader",
+    "Linkage",
+    "Basic",
+    "CatalogEntry",
     "ActivityDefinition",
     "AdverseEvent",
     "Appointment",
@@ -253,11 +355,44 @@ SUPPORTED_RESOURCE_TYPES = {
     "Location",
     "Group",
     "Person",
-}
+
+    "Evidence",}
 
 PATIENTLESS_RESOURCE_TYPES = {
     "Group",
     "Account",
+    "SubstanceSourceMaterial",
+    "SubstanceSpecification",
+    "SubstanceReferenceInformation",
+    "SubstanceProtein",
+    "SubstancePolymer",
+    "SubstanceNucleicAcid",
+    "MedicinalProductUndesirableEffect",
+    "MedicinalProductPharmaceutical",
+    "MedicinalProductPackaged",
+    "MedicinalProductManufactured",
+    "MedicinalProductInteraction",
+    "MedicinalProductIngredient",
+    "MedicinalProductIndication",
+    "MedicinalProductContraindication",
+    "MedicinalProductAuthorization",
+    "MedicinalProduct",
+    "RiskEvidenceSynthesis",
+    "EffectEvidenceSynthesis",
+    "EvidenceVariable",
+    "ResearchElementDefinition",
+    "ResearchDefinition",
+    "Contract",
+    "ChargeItemDefinition",
+    "VerificationResult",
+    "BiologicallyDerivedProduct",
+    "Subscription",
+    "Parameters",
+    "OperationOutcome",
+    "MessageHeader",
+    "Linkage",
+    "Basic",
+    "CatalogEntry",
     "ActivityDefinition",
     "AuditEvent",
     "CapabilityStatement",
@@ -306,7 +441,8 @@ PATIENTLESS_RESOURCE_TYPES = {
     "OperationDefinition",
     "Questionnaire",
     "ResearchStudy",
-}
+
+    "Evidence",}
 
 
 @dataclass
@@ -351,6 +487,39 @@ def import_fhir_payloads(payloads, source="imported", target_patient=None):
                 continue
 
             importer = {
+                "CatalogEntry": _import_compact_fhir_resource,
+                "Basic": _import_compact_fhir_resource,
+                "Linkage": _import_compact_fhir_resource,
+                "MessageHeader": _import_compact_fhir_resource,
+                "OperationOutcome": _import_compact_fhir_resource,
+                "Parameters": _import_compact_fhir_resource,
+                "Subscription": _import_compact_fhir_resource,
+                "BiologicallyDerivedProduct": _import_compact_fhir_resource,
+                "VerificationResult": _import_compact_fhir_resource,
+                "ChargeItemDefinition": _import_compact_fhir_resource,
+                "Contract": _import_compact_fhir_resource,
+                "ResearchDefinition": _import_compact_fhir_resource,
+                "ResearchElementDefinition": _import_compact_fhir_resource,
+                "Evidence": _import_compact_fhir_resource,
+                "EvidenceVariable": _import_compact_fhir_resource,
+                "EffectEvidenceSynthesis": _import_compact_fhir_resource,
+                "RiskEvidenceSynthesis": _import_compact_fhir_resource,
+                "MedicinalProduct": _import_compact_fhir_resource,
+                "MedicinalProductAuthorization": _import_compact_fhir_resource,
+                "MedicinalProductContraindication": _import_compact_fhir_resource,
+                "MedicinalProductIndication": _import_compact_fhir_resource,
+                "MedicinalProductIngredient": _import_compact_fhir_resource,
+                "MedicinalProductInteraction": _import_compact_fhir_resource,
+                "MedicinalProductManufactured": _import_compact_fhir_resource,
+                "MedicinalProductPackaged": _import_compact_fhir_resource,
+                "MedicinalProductPharmaceutical": _import_compact_fhir_resource,
+                "MedicinalProductUndesirableEffect": _import_compact_fhir_resource,
+                "SubstanceNucleicAcid": _import_compact_fhir_resource,
+                "SubstancePolymer": _import_compact_fhir_resource,
+                "SubstanceProtein": _import_compact_fhir_resource,
+                "SubstanceReferenceInformation": _import_compact_fhir_resource,
+                "SubstanceSpecification": _import_compact_fhir_resource,
+                "SubstanceSourceMaterial": _import_compact_fhir_resource,
                 "Account": _import_account,
                 "AuditEvent": _import_audit_event,
                 "ActivityDefinition": _import_activity_definition,
@@ -1709,6 +1878,26 @@ def _import_questionnaire(resource, patient=None):
     created = obj.pk is None
     obj.save()
     return obj, created
+
+def _import_compact_fhir_resource(resource, patient=None):
+    model_class = FHIR_COMPACT_RESOURCE_MODELS[resource.get("resourceType")]
+    django_model = f"clinical.{model_class.__name__}"
+    obj = _object_for_resource(resource, django_model) or model_class()
+    obj.url = resource.get("url") or ""
+    obj.version = resource.get("version") or ""
+    obj.name = resource.get("name") or ""
+    obj.title = _resource_title(resource)
+    obj.status = resource.get("status") or resource.get("clinicalStatus", {}).get("text", "") or ""
+    obj.publisher = resource.get("publisher") or ""
+    obj.date = _datetime(resource.get("date") or resource.get("authoredOn") or resource.get("issued"))
+    obj.description = resource.get("description") or resource.get("purpose") or ""
+    obj.summary = _compact_resource_summary(resource)
+    obj.notes = _notes(resource)
+    created = obj.pk is None
+    obj.save()
+    return obj, created
+
+
 def _import_metadata_definition(resource, model_class, django_model, default_title, extra_fields=None):
     obj = _object_for_resource(resource, django_model) or model_class()
     if hasattr(obj, "url"):
@@ -2795,8 +2984,74 @@ def _object_for_resource(resource, django_model):
     app_label, model_name = django_model.split(".")
     for model in (
         PatientProfile,
+        CatalogEntry,
+        Basic,
+        Linkage,
+        MessageHeader,
+        OperationOutcome,
+        Parameters,
+        Subscription,
+        BiologicallyDerivedProduct,
+        VerificationResult,
+        ChargeItemDefinition,
+        Contract,
+        ResearchDefinition,
+        ResearchElementDefinition,
+        Evidence,
+        EvidenceVariable,
+        EffectEvidenceSynthesis,
+        RiskEvidenceSynthesis,
+        MedicinalProduct,
+        MedicinalProductAuthorization,
+        MedicinalProductContraindication,
+        MedicinalProductIndication,
+        MedicinalProductIngredient,
+        MedicinalProductInteraction,
+        MedicinalProductManufactured,
+        MedicinalProductPackaged,
+        MedicinalProductPharmaceutical,
+        MedicinalProductUndesirableEffect,
+        SubstanceNucleicAcid,
+        SubstancePolymer,
+        SubstanceProtein,
+        SubstanceReferenceInformation,
+        SubstanceSpecification,
+        SubstanceSourceMaterial,
         ActivityDefinition,
         Account,
+    SubstanceSourceMaterial,
+    SubstanceSpecification,
+    SubstanceReferenceInformation,
+    SubstanceProtein,
+    SubstancePolymer,
+    SubstanceNucleicAcid,
+    MedicinalProductUndesirableEffect,
+    MedicinalProductPharmaceutical,
+    MedicinalProductPackaged,
+    MedicinalProductManufactured,
+    MedicinalProductInteraction,
+    MedicinalProductIngredient,
+    MedicinalProductIndication,
+    MedicinalProductContraindication,
+    MedicinalProductAuthorization,
+    MedicinalProduct,
+    RiskEvidenceSynthesis,
+    EffectEvidenceSynthesis,
+    EvidenceVariable,
+    Evidence,
+    ResearchElementDefinition,
+    ResearchDefinition,
+    Contract,
+    ChargeItemDefinition,
+    VerificationResult,
+    BiologicallyDerivedProduct,
+    Subscription,
+    Parameters,
+    OperationOutcome,
+    MessageHeader,
+    Linkage,
+    Basic,
+    CatalogEntry,
     ActivityDefinition,
         Appointment,
         AuditEvent,
@@ -2819,6 +3074,39 @@ def _object_for_resource(resource, django_model):
         BodyStructure,
         Condition,
         Account,
+    SubstanceSourceMaterial,
+    SubstanceSpecification,
+    SubstanceReferenceInformation,
+    SubstanceProtein,
+    SubstancePolymer,
+    SubstanceNucleicAcid,
+    MedicinalProductUndesirableEffect,
+    MedicinalProductPharmaceutical,
+    MedicinalProductPackaged,
+    MedicinalProductManufactured,
+    MedicinalProductInteraction,
+    MedicinalProductIngredient,
+    MedicinalProductIndication,
+    MedicinalProductContraindication,
+    MedicinalProductAuthorization,
+    MedicinalProduct,
+    RiskEvidenceSynthesis,
+    EffectEvidenceSynthesis,
+    EvidenceVariable,
+    Evidence,
+    ResearchElementDefinition,
+    ResearchDefinition,
+    Contract,
+    ChargeItemDefinition,
+    VerificationResult,
+    BiologicallyDerivedProduct,
+    Subscription,
+    Parameters,
+    OperationOutcome,
+    MessageHeader,
+    Linkage,
+    Basic,
+    CatalogEntry,
     ActivityDefinition,
     AdverseEvent,
         Allergy,
@@ -2935,6 +3223,39 @@ def _object_for_reference(reference):
     resource_type, resource_id = reference.split("/", 1)
     model_by_resource_type = {
         "ActivityDefinition": "clinical.ActivityDefinition",
+        "CatalogEntry": "clinical.CatalogEntry",
+        "Basic": "clinical.Basic",
+        "Linkage": "clinical.Linkage",
+        "MessageHeader": "clinical.MessageHeader",
+        "OperationOutcome": "clinical.OperationOutcome",
+        "Parameters": "clinical.Parameters",
+        "Subscription": "clinical.Subscription",
+        "BiologicallyDerivedProduct": "clinical.BiologicallyDerivedProduct",
+        "VerificationResult": "clinical.VerificationResult",
+        "ChargeItemDefinition": "clinical.ChargeItemDefinition",
+        "Contract": "clinical.Contract",
+        "ResearchDefinition": "clinical.ResearchDefinition",
+        "ResearchElementDefinition": "clinical.ResearchElementDefinition",
+        "Evidence": "clinical.Evidence",
+        "EvidenceVariable": "clinical.EvidenceVariable",
+        "EffectEvidenceSynthesis": "clinical.EffectEvidenceSynthesis",
+        "RiskEvidenceSynthesis": "clinical.RiskEvidenceSynthesis",
+        "MedicinalProduct": "clinical.MedicinalProduct",
+        "MedicinalProductAuthorization": "clinical.MedicinalProductAuthorization",
+        "MedicinalProductContraindication": "clinical.MedicinalProductContraindication",
+        "MedicinalProductIndication": "clinical.MedicinalProductIndication",
+        "MedicinalProductIngredient": "clinical.MedicinalProductIngredient",
+        "MedicinalProductInteraction": "clinical.MedicinalProductInteraction",
+        "MedicinalProductManufactured": "clinical.MedicinalProductManufactured",
+        "MedicinalProductPackaged": "clinical.MedicinalProductPackaged",
+        "MedicinalProductPharmaceutical": "clinical.MedicinalProductPharmaceutical",
+        "MedicinalProductUndesirableEffect": "clinical.MedicinalProductUndesirableEffect",
+        "SubstanceNucleicAcid": "clinical.SubstanceNucleicAcid",
+        "SubstancePolymer": "clinical.SubstancePolymer",
+        "SubstanceProtein": "clinical.SubstanceProtein",
+        "SubstanceReferenceInformation": "clinical.SubstanceReferenceInformation",
+        "SubstanceSpecification": "clinical.SubstanceSpecification",
+        "SubstanceSourceMaterial": "clinical.SubstanceSourceMaterial",
         "Account": "clinical.Account",
         "Appointment": "clinical.Appointment",
         "AppointmentResponse": "clinical.AppointmentResponse",
@@ -3475,6 +3796,25 @@ def _audit_event_entity_summary(resource):
         if line:
             lines.append(line)
     return "\n".join(lines)
+def _resource_title(resource):
+    code = resource.get("code")
+    if isinstance(code, dict):
+        code = _codeable_text(code) or code.get("text")
+    return (
+        resource.get("title")
+        or resource.get("name")
+        or resource.get("display")
+        or resource.get("id")
+        or code
+        or resource.get("resourceType")
+        or "FHIR Resource"
+    )
+
+
+def _compact_resource_summary(resource):
+    skipped = {"resourceType", "id", "meta", "text", "contained"}
+    compact = {key: value for key, value in resource.items() if key not in skipped and value not in (None, "", [], {})}
+    return _compact_json(compact)
 def _compact_json(value):
     if value in (None, [], {}):
         return ""
@@ -5691,6 +6031,11 @@ def _decimal(value):
         return Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
         return None
+
+
+
+
+
 
 
 

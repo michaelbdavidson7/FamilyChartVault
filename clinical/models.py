@@ -3535,6 +3535,166 @@ class SpecimenDefinition(models.Model):
         return self.title
 
 
+
+class FHIRCompactResource(models.Model):
+    """Compact first-class storage for lower-touch FHIR resources."""
+
+    url = models.URLField(blank=True, help_text="FHIR url: canonical URL when this resource defines one.")
+    version = models.CharField(max_length=100, blank=True, help_text="FHIR version: business version when present.")
+    name = models.CharField(max_length=255, blank=True, help_text="FHIR name: computer-friendly name when present.")
+    title = models.CharField(max_length=255, blank=True, help_text="FHIR title/name/code: human-friendly label for this resource.")
+    status = models.CharField(max_length=50, blank=True, help_text="FHIR status: workflow/publication status when present.")
+    publisher = models.CharField(max_length=255, blank=True, help_text="FHIR publisher: organization or individual responsible when present.")
+    date = models.DateTimeField(null=True, blank=True, help_text="FHIR date: publication/change/event date when present.")
+    description = models.TextField(blank=True, help_text="FHIR description: natural language description when present.")
+    summary = models.TextField(blank=True, help_text="Compact summary of important FHIR elements for browsing/search.")
+    notes = models.TextField(blank=True, help_text="Imported notes or source text for this resource.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.title or self.name or f"{self._meta.verbose_name.title()} #{self.pk}"
+
+
+class CatalogEntry(FHIRCompactResource):
+    class Meta:
+        verbose_name_plural = "Catalog entries"
+
+
+class Basic(FHIRCompactResource):
+    pass
+
+
+class Linkage(FHIRCompactResource):
+    pass
+
+
+class MessageHeader(FHIRCompactResource):
+    pass
+
+
+class OperationOutcome(FHIRCompactResource):
+    pass
+
+
+class Parameters(FHIRCompactResource):
+    class Meta:
+        verbose_name_plural = "Parameters"
+
+
+class Subscription(FHIRCompactResource):
+    pass
+
+
+class BiologicallyDerivedProduct(FHIRCompactResource):
+    pass
+
+
+class VerificationResult(FHIRCompactResource):
+    pass
+
+
+class ChargeItemDefinition(FHIRCompactResource):
+    pass
+
+
+class Contract(FHIRCompactResource):
+    pass
+
+
+class ResearchDefinition(FHIRCompactResource):
+    pass
+
+
+class ResearchElementDefinition(FHIRCompactResource):
+    pass
+
+
+class Evidence(FHIRCompactResource):
+    class Meta:
+        verbose_name_plural = "Evidence"
+
+
+class EvidenceVariable(FHIRCompactResource):
+    pass
+
+
+class EffectEvidenceSynthesis(FHIRCompactResource):
+    class Meta:
+        verbose_name_plural = "Effect evidence syntheses"
+
+
+class RiskEvidenceSynthesis(FHIRCompactResource):
+    class Meta:
+        verbose_name_plural = "Risk evidence syntheses"
+
+
+class MedicinalProduct(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductAuthorization(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductContraindication(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductIndication(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductIngredient(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductInteraction(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductManufactured(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductPackaged(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductPharmaceutical(FHIRCompactResource):
+    pass
+
+
+class MedicinalProductUndesirableEffect(FHIRCompactResource):
+    pass
+
+
+class SubstanceNucleicAcid(FHIRCompactResource):
+    pass
+
+
+class SubstancePolymer(FHIRCompactResource):
+    pass
+
+
+class SubstanceProtein(FHIRCompactResource):
+    pass
+
+
+class SubstanceReferenceInformation(FHIRCompactResource):
+    pass
+
+
+class SubstanceSpecification(FHIRCompactResource):
+    pass
+
+
+class SubstanceSourceMaterial(FHIRCompactResource):
+    pass
+
 # =============================================================================
 # Organizations And Locations
 # Core organization and location directory records used by many clinical resources.
@@ -3572,4 +3732,6 @@ class Location(models.Model):
 
     def __str__(self):
         return self.name
+
+
 
