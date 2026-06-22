@@ -73,13 +73,7 @@ PERSONAL_EMR_GROUPS = [
                 "description": "Patient goals, targets, outcomes, priorities, and progress.",
                 "icon": "fas fa-bullseye",
             },
-        ],
-    },
-    {
-        "title": "Medications & Immunizations",
-        "icon": "fas fa-pills",
-        "resources": [
-            {
+                        {
                 "title": "Medications",
                 "resource": "MedicationRequest / MedicationStatement",
                 "model": "clinical.Medication",
@@ -129,8 +123,7 @@ PERSONAL_EMR_GROUPS = [
                 "icon": "fas fa-check-circle",
             },
         ],
-    },
-    {
+},{
         "title": "Documents, Forms & Media",
         "icon": "fas fa-folder-open",
         "resources": [
