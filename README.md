@@ -4,7 +4,7 @@ HolyFHIR is a private, local offline-first health-record app for people who want
 
 It is meant to help you organize things like patients, medications, allergies, conditions, documents, visits, and imported FHIR records from Epic's MyChart. The app runs on your computer and does not require a cloud account.
 
-HolyFHIR has a permanent free software license that no one can take away from you - even us. Your medical data is YOURS, it is private, and you have permission to access it forever. No one can take your data from you to use in any other context without your permission.
+HolyFHIR has a permanent free software license that no one can take away from you - even us. Your medical data is YOURS, it is private, and you have permission to access it forever.
 
 ![HolyFHIR Personal Family EMR screenshot](https://github.com/user-attachments/assets/a0bf0afa-3c5c-4451-89d8-ea9971fd6b9e)
 
