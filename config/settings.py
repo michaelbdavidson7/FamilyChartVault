@@ -325,7 +325,7 @@ JAZZMIN_SETTINGS = {
                 "permissions": ["fhir.view_fhirresourcesnapshot"],
             },
             {
-                "name": "Import FHIR Data",
+                "name": "Import Data",
                 "url": "fhir_import",
                 "icon": "fas fa-file-import",
                 "permissions": ["fhir.add_fhirresourcesnapshot"],
