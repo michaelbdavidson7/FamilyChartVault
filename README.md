@@ -1,20 +1,20 @@
 # HolyFHIR Personal Family EMR
 
-HolyFHIR is a private, local offline-first health-record app for people who want to keep a personal copy of their medical information.
+HolyFHIR is a local, offline-first health-record organizer for people who want to keep a personal copy of their medical information.
 
 It is meant to help you organize things like patients, medications, allergies, conditions, documents, visits, and imported FHIR records from Epic's MyChart. The app runs on your computer and does not require a cloud account.
 
-HolyFHIR has a permanent free software license that no one can take away from you - even us. Your medical data is YOURS, it is private, and you have permission to access it forever.
+HolyFHIR is licensed as free and open-source software under the MIT License. Your ability to use, copy, modify, and share this software is governed by that license.
 
-HolyFHIR supports 145 "FHIR Resources" - meaning it can support any FHIR-compliant file transfer you can throw at it.
+HolyFHIR includes models and browsing tools for many FHIR resource types, and its current importer maps a smaller supported subset. FHIR files vary by source, profile, version, and export quality, so imports may be incomplete, unsupported, or require review.
 
-This project is the beginning of a journey to improved patient privacy, and new safe usages for your medical data. Join us for free!
+This project is an early personal recordkeeping tool for people who want more local control over copies of their health information.
 
 ![HolyFHIR Personal Family EMR screenshot](https://github.com/user-attachments/assets/a0bf0afa-3c5c-4451-89d8-ea9971fd6b9e)
 
 ## Plain-English Summary
 
-- Your data stays on your computer.
+- HolyFHIR is designed to store app data locally on your computer by default.
 - The Windows desktop app includes the backend it needs.
 - You can keep records for yourself or family members.
 - You can import some FHIR records, including MyChart requested-record exports.
@@ -33,7 +33,7 @@ Please treat it like a personal organizer for medical records, not as a replacem
 
 HolyFHIR is not medical advice, not a medical device, and not intended for diagnosis, treatment, emergencies, clinical decision support, or medication safety checking. Imported data may be incomplete or incorrect, so always verify important information against official sources.
 
-You are responsible for protecting your local device, password, recovery key, backups, database files, and exported records. If you use HolyFHIR with anyone else's health information, or in any professional or regulated setting, you are responsible for understanding and meeting any applicable privacy, security, consent, retention, licensing, and compliance obligations.
+You are responsible for protecting your local device, password, recovery key, backups, database files, and exported records. HolyFHIR is not represented as HIPAA-compliant, certified, validated, or appropriate for professional, clinical, organizational, research, or regulated use. If you use HolyFHIR with anyone else's health information, you are responsible for understanding and meeting any applicable privacy, security, consent, retention, licensing, and compliance obligations.
 
 See [DISCLAIMER.md](DISCLAIMER.md) for the full disclaimer.
 
@@ -72,7 +72,7 @@ Useful files in that folder:
 - `.env`: local app settings and generated secrets
 - `holyfhir.encrypted.sqlite3`: encrypted database
 - `holyfhir-desktop.log`: log file for troubleshooting
-- `.env.backup.*`: automatic backups made before `.env` changes
+- `.env.backup.*`: local copies made before some `.env` changes
 
 ## What You Can Track
 
@@ -143,7 +143,7 @@ Please save:
 
 - your app password
 - your recovery key
-- backups of your data when backup support is finished
+- separate backups of your data, database file, and `.env` file
 
 If the password, encryption key, and recovery material are all lost, the data may not be recoverable.
 
@@ -151,7 +151,7 @@ If the password, encryption key, and recovery material are all lost, the data ma
 
 HolyFHIR is still early. The biggest things to finish before a wider release are:
 
-- better backup and restore
+- fuller backup and restore tooling
 - friendlier first-run recovery-key setup
 - release-build debug/static behavior
 - GitHub Actions dependency verification
@@ -196,13 +196,13 @@ python manage.py bootstrap_secrets
 
 This creates `.env`, generates the database encryption key, and generates Django's secret key.
 
-If `.env` already exists, HolyFHIR prompts before rewriting it and creates a timestamped backup first:
+If `.env` already exists, HolyFHIR prompts before rewriting it and tries to create a timestamped local copy first:
 
 ```text
 .env.backup.YYYYMMDD-HHMMSS
 ```
 
-Do not casually rotate `DATABASE_ENCRYPTION_KEY`. Changing it can make an existing encrypted database unreadable without a migration or restore plan.
+Do not casually rotate `DATABASE_ENCRYPTION_KEY`. Changing it can make an existing encrypted database unreadable without a tested migration or restore plan.
 
 ### 5. Run migrations
 
@@ -320,7 +320,3 @@ Release-tag builds upload the NSIS installer artifact and attach it to a draft G
 HolyFHIR stores calendar-only clinical facts, such as date of birth or medication start date, as dates. Exact moments, such as imports, lockouts, encounters, and timed observations, use timezone-aware datetimes.
 
 That distinction matters because medical dates should not move to the previous or next day because of timezone conversion.
-
-## License
-
-TBD

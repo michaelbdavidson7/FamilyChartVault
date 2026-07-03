@@ -189,7 +189,7 @@ def settings_hub(request):
         },
         {
             "title": "Backups",
-            "description": "Find FHIR pre-import database backups and review the manual restore steps.",
+            "description": "Find local FHIR pre-import database copies and review the manual restore steps.",
             "url": reverse("admin_backups"),
             "icon": "fas fa-archive",
         },
@@ -1834,7 +1834,7 @@ def fhir_interop_hub(request):
         },
         {
             "title": "FHIR Explorer",
-            "description": "Browse all 143+ FHIR resources, profiles, and definitions across the system.",
+            "description": "Browse FHIR resource models, profiles, and definitions available in the system.",
             "url": reverse("fhir_explorer"),
             "icon": "fas fa-search",
         },

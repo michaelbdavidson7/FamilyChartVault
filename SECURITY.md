@@ -38,4 +38,4 @@ HolyFHIR is early open-source software. Security fixes are generally made on the
 
 ## User Responsibilities
 
-HolyFHIR is intended for local, personal recordkeeping. Users are responsible for protecting their devices, passwords, recovery keys, backups, exports, database files, and any sensitive health information they store or share.
+HolyFHIR is intended for local, personal recordkeeping and is not represented as HIPAA-compliant, certified, audited, or appropriate for regulated use. Users are responsible for protecting their devices, passwords, recovery keys, backups, exports, database files, and any sensitive health information they store or share.
