@@ -74,6 +74,41 @@
     white-space: nowrap;
   }
 
+  .fhir-guide-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    margin-bottom: 18px;
+  }
+
+  .fhir-guide-card {
+    background: #ffffff;
+    border: 1px solid #d8dee6;
+    border-radius: 8px;
+    padding: 18px;
+  }
+
+  .fhir-guide-card h2,
+  .fhir-guide-card h3 {
+    margin-top: 0;
+  }
+
+  .fhir-guide-card ol,
+  .fhir-guide-card ul {
+    padding-left: 1.3rem;
+  }
+
+  .fhir-guide-card li + li {
+    margin-top: 8px;
+  }
+
+  .fhir-guide-note {
+    background: #f8f9fa;
+    border-left: 4px solid #17a2b8;
+    margin-top: 14px;
+    padding: 10px 12px;
+  }
+
   @media (max-width: 720px) {
     .fhir-attach-header,
     .fhir-attach-actions,
@@ -94,10 +129,57 @@
       margin-top: 10px;
       width: 100%;
     }
+
+    .fhir-guide-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 
 <div id="content-main">
+  <div class="fhir-guide-grid">
+    <section class="fhir-guide-card" aria-labelledby="mychart-download-guide-title">
+      <h2 id="mychart-download-guide-title">How to download your chart from Epic MyChart</h2>
+      <p class="text-muted">
+        Use this when you want to bring records from a hospital or clinic MyChart account into HolyFHIR.
+        MyChart screens vary by health system, but the flow is usually similar.
+      </p>
+      <ol>
+        <li>Sign in to the MyChart website for your hospital, clinic, or health system.</li>
+        <li>Open the menu and look for <strong>Sharing Hub</strong>, <strong>Document Center</strong>, <strong>Lucy</strong>, <strong>Download My Record</strong>, <strong>Download My Data</strong>, or <strong>Request Medical Records</strong>.</li>
+        <li>Choose the patient, date range, and record categories you want. If there is an option for a complete medical record, health summary, or FHIR/downloadable data, choose that.</li>
+        <li>Submit the request. Some MyChart accounts create the file immediately; others place it in <strong>Requested Records</strong> or send a MyChart message when it is ready.</li>
+        <li>Download the file to your computer. Keep the original ZIP file if MyChart gives you one.</li>
+        <li>Come back here, choose the patient in HolyFHIR, select the ZIP or JSON file, and click <strong>Import FHIR data</strong>.</li>
+      </ol>
+      <div class="fhir-guide-note">
+        If you only see a PDF visit summary, you can still keep it as a document, but this importer works best with the MyChart ZIP, FHIR JSON, or NDJSON export.
+      </div>
+    </section>
+
+    <section class="fhir-guide-card" aria-labelledby="fhir-import-faq-title">
+      <h3 id="fhir-import-faq-title">FAQ</h3>
+      <dl>
+        <dt>What file should I upload?</dt>
+        <dd>A MyChart requested-record ZIP is best. This page also accepts NDJSON or pasted FHIR JSON.</dd>
+
+        <dt>What if I cannot find the download page?</dt>
+        <dd>Search MyChart for "download", "record", "Lucy", or "Sharing Hub". If your health system hides the option, ask their medical records office for an electronic copy of your records in FHIR or downloadable patient access format.</dd>
+
+        <dt>Should I unzip the file first?</dt>
+        <dd>No. Upload the ZIP directly when MyChart gives you one.</dd>
+
+        <dt>Is this the same as sending records to another doctor?</dt>
+        <dd>No. This is for downloading a personal copy so you can import it into HolyFHIR.</dd>
+
+        <dt>Do I need to create a patient in this app first?</dt>
+        <dd>No, importing will create the patient for you. Alternatively you can attach your file to an existing patient in this app.<dd>
+
+        <dt>Will my records update in this app automatically?</dt>
+        <dd>No. At this time, this importer is a one-time upload. If you want to update your records, you will need to download a new file from MyChart and import it again, but it will not overwrite existing data.</dd>
+      </dl>
+    </section>
+  </div>
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     <input type="hidden" name="action" value="import_fhir">

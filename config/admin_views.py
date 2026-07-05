@@ -1827,6 +1827,12 @@ def fhir_interop_hub(request):
             "icon": "fas fa-database",
         },
         {
+            "title": "Get Records from MyChart",
+            "description": "Follow the MyChart download guide, then upload the ZIP or FHIR JSON into HolyFHIR.",
+            "url": reverse("fhir_import"),
+            "icon": "fas fa-question-circle",
+        },
+        {
             "title": "FHIR Export",
             "description": "Download saved FHIR snapshots as NDJSON files grouped by resource type.",
             "url": reverse("fhir_export"),

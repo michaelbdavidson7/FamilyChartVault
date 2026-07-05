@@ -299,13 +299,13 @@ JAZZMIN_SETTINGS = {
         ],
         "clinical": [
             {
-                "name": "Clinical Resources",
+                "name": "Health Records",
                 "url": "new_clinical_resources_directory",
                 "icon": "fas fa-notes-medical",
                 "permissions": ["clinical.view_condition"],
             },
             {
-                "name": "Care Team Info",
+                "name": "Doctors & Care Team",
                 "url": "clinical_care_team_directory",
                 "icon": "fas fa-user-friends",
                 "permissions": ["clinical.view_careteam"],
@@ -319,25 +319,25 @@ JAZZMIN_SETTINGS = {
         ],
         "fhir": [
             {
-                "name": "FHIR / Interop",
+                "name": "Import / Export Help",
                 "url": "fhir_interop_hub",
                 "icon": "fas fa-exchange-alt",
                 "permissions": ["fhir.view_fhirresourcesnapshot"],
             },
             {
-                "name": "Import Data",
+                "name": "Import My Records",
                 "url": "fhir_import",
                 "icon": "fas fa-file-import",
                 "permissions": ["fhir.add_fhirresourcesnapshot"],
             },
             {
-                "name": "Export Data",
+                "name": "Download My Copy",
                 "url": "fhir_export",
                 "icon": "fas fa-file-export",
                 "permissions": ["fhir.view_fhirresourcesnapshot"],
             },
             {
-                "name": "FHIR Explorer",
+                "name": "Technical FHIR Browser",
                 "url": "fhir_explorer",
                 "icon": "fas fa-search",
                 "permissions": ["fhir.view_fhirresourcesnapshot"],
