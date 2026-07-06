@@ -4,13 +4,29 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
+from .models import SystemSettings
+
 
 UNLOCK_MAX_ATTEMPTS = 5
 UNLOCK_LOCKOUT_SECONDS = 15 * 60
 
 
+def _clear_app_lock_session(request):
+    request.session.pop("app_locked", None)
+    request.session.pop("unlock_next", None)
+    request.session.pop("unlock_failures", None)
+    request.session.pop("unlock_locked_until", None)
+
+
 @login_required
 def lock_app(request):
+    if not SystemSettings.get_solo().app_lock_enabled:
+        _clear_app_lock_session(request)
+        messages.info(
+            request, "App lock is off. Turn it on in Settings before using Lock app."
+        )
+        return redirect("admin:index")
+
     request.session["app_locked"] = True
     request.session.pop("unlock_next", None)
     return redirect("app_unlock")
@@ -18,6 +34,10 @@ def lock_app(request):
 
 @login_required
 def unlock_app(request):
+    if not SystemSettings.get_solo().app_lock_enabled:
+        _clear_app_lock_session(request)
+        return redirect("admin:index")
+
     locked_until = request.session.get("unlock_locked_until")
 
     if locked_until and timezone.now().timestamp() < locked_until:

@@ -7,9 +7,12 @@ def system_settings(request):
     except Exception:
         settings = None
 
+    app_lock_enabled = bool(settings and settings.app_lock_enabled)
+
     return {
         "holyfhir_system_settings": settings,
+        "holyfhir_app_lock_enabled": app_lock_enabled,
         "holyfhir_lock_shortcut_enabled": bool(
-            settings and settings.lock_shortcut_enabled
+            app_lock_enabled and settings.lock_shortcut_enabled
         ),
     }

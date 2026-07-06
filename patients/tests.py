@@ -22,6 +22,7 @@ from config.db.backends.sqlcipher.base import _is_plaintext_sqlite_database
 from config.env import load_env, parse_env_file
 from patients.models import LoginLockout
 from patients.forms import RecoveryKeyPasswordResetForm
+from system_settings.models import SystemSettings
 from patients.models import PatientProfile, RecoveryCredential
 from patients.recovery import (
     check_recovery_key,
@@ -314,7 +315,35 @@ class BootstrapSecretsCommandTests(SimpleTestCase):
 
 
 class LoginRateLimitTests(TestCase):
-    def test_login_blocks_when_username_has_too_many_failures(self):
+    def test_login_lockout_is_disabled_by_default(self):
+        request = RequestFactory().post("/admin/login/")
+        request.META["REMOTE_ADDR"] = "127.0.0.1"
+
+        with (
+            override_settings(
+                HOLYFHIR_LOGIN_MAX_ATTEMPTS_PER_USERNAME=1,
+                HOLYFHIR_LOGIN_MAX_ATTEMPTS_PER_CLIENT=20,
+                HOLYFHIR_LOGIN_LOCKOUT_SECONDS=60,
+            ),
+            patch("django.contrib.auth.forms.authenticate", return_value=None),
+        ):
+            form = RateLimitedAdminAuthenticationForm(
+                request=request,
+                data={"username": "owner", "password": "wrong-password"},
+            )
+            self.assertFalse(form.is_valid())
+
+            form = RateLimitedAdminAuthenticationForm(
+                request=request,
+                data={"username": "owner", "password": "another-wrong-password"},
+            )
+            self.assertFalse(form.is_valid())
+
+        self.assertFalse(LoginLockout.objects.exists())
+
+    def test_login_blocks_when_username_has_too_many_failures_if_enabled(self):
+        SystemSettings.get_solo()
+        SystemSettings.objects.update(login_lockout_enabled=True)
         request = RequestFactory().post("/admin/login/")
         request.META["REMOTE_ADDR"] = "127.0.0.1"
 

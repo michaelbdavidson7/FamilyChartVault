@@ -8,6 +8,14 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from patients.models import LoginLockout
+from system_settings.models import SystemSettings
+
+
+def _login_lockout_enabled():
+    try:
+        return SystemSettings.get_solo().login_lockout_enabled
+    except (OperationalError, ProgrammingError):
+        return False
 
 
 def _lockout_key(value):
@@ -72,10 +80,7 @@ def _clear_failure(scope, key):
 
 class RateLimitedAdminAuthenticationForm(AdminAuthenticationForm):
     """
-    Adds local brute-force protection to Django Admin login.
-
-    This is intentionally cache-backed and local-first. It slows password guessing
-    in the desktop app without introducing accounts, email, SMS, or cloud recovery.
+    Adds opt-in local brute-force protection to Django Admin login.
     """
 
     error_messages = {
@@ -86,6 +91,9 @@ class RateLimitedAdminAuthenticationForm(AdminAuthenticationForm):
     }
 
     def clean(self):
+        if not _login_lockout_enabled():
+            return super().clean()
+
         username = self.cleaned_data.get("username", "")
         client = _client_identifier(self.request)
         timeout = settings.HOLYFHIR_LOGIN_LOCKOUT_SECONDS

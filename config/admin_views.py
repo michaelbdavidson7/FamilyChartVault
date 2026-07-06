@@ -163,7 +163,7 @@ def settings_hub(request):
     cards = [
         {
             "title": "App Settings",
-            "description": f"Manage local time, lock-screen behavior, and desktop preferences. Current time zone: {system_settings.time_zone}.",
+            "description": f"Manage local time, optional sign-in and locking, and desktop preferences. Current time zone: {system_settings.time_zone}.",
             "url": reverse(
                 "admin:system_settings_systemsettings_change", args=[system_settings.pk]
             ),

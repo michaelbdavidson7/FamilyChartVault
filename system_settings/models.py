@@ -16,11 +16,20 @@ class SystemSettings(models.Model):
     time_zone = models.CharField(
         max_length=64,
         default=default_time_zone,
-        help_text="Used to display exact times, such as encounters, observations, imports, and lockouts.",
+        help_text="Used to display exact times, such as encounters, observations, and imports.",
+    )
+    app_lock_enabled = models.BooleanField(
+        "Require sign-in and enable lock screen",
+        default=False,
+        help_text="Opt in to sign-in and the manual lock screen for this local app.",
     )
     lock_shortcut_enabled = models.BooleanField(
         default=False,
-        help_text="Allow Ctrl+Shift+L to lock the desktop app.",
+        help_text="Allow Ctrl+Shift+L to lock the desktop app when the lock screen is enabled.",
+    )
+    login_lockout_enabled = models.BooleanField(
+        default=False,
+        help_text="Opt in to temporary lockouts after repeated failed sign-in attempts.",
     )
     updated_at = models.DateTimeField(auto_now=True)
 

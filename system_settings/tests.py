@@ -16,10 +16,52 @@ class AppLockTests(TestCase):
     def setUp(self):
         User = get_user_model()
         self.user = User.objects.create_user(
-            username="owner", password="correct-password"
+            username="owner",
+            password="correct-password",
+            is_staff=True,
+            is_superuser=True,
         )
 
-    def test_lock_redirects_to_unlock_and_blocks_admin(self):
+    def test_admin_auto_signs_in_local_owner_when_locking_is_disabled(self):
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
+
+    def test_admin_requires_sign_in_when_locking_is_enabled(self):
+        SystemSettings.get_solo()
+        SystemSettings.objects.update(app_lock_enabled=True)
+
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertRedirects(
+            response,
+            f"{reverse('admin:login')}?next={reverse('admin:index')}",
+            fetch_redirect_response=False,
+        )
+
+    def test_lock_app_is_disabled_by_default(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("app_lock"))
+
+        self.assertRedirects(response, reverse("admin:index"))
+        self.assertNotIn("app_locked", self.client.session)
+
+    def test_existing_lock_state_is_ignored_when_disabled(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["app_locked"] = True
+        session.save()
+
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("app_locked", self.client.session)
+
+    def test_lock_redirects_to_unlock_and_blocks_admin_when_enabled(self):
+        SystemSettings.get_solo()
+        SystemSettings.objects.update(app_lock_enabled=True)
         self.client.force_login(self.user)
 
         response = self.client.get(reverse("app_lock"))
@@ -31,7 +73,9 @@ class AppLockTests(TestCase):
 
         self.assertRedirects(response, reverse("app_unlock"))
 
-    def test_unlock_with_password_clears_lock(self):
+    def test_unlock_with_password_clears_lock_when_enabled(self):
+        SystemSettings.get_solo()
+        SystemSettings.objects.update(app_lock_enabled=True)
         self.client.force_login(self.user)
         session = self.client.session
         session["app_locked"] = True
@@ -53,6 +97,13 @@ class SystemSettingsTests(TestCase):
 
         self.assertEqual(settings.time_zone, "America/Chicago")
 
+    def test_locking_features_are_disabled_by_default(self):
+        settings = SystemSettings.get_solo()
+
+        self.assertFalse(settings.app_lock_enabled)
+        self.assertFalse(settings.lock_shortcut_enabled)
+        self.assertFalse(settings.login_lockout_enabled)
+
     def test_invalid_time_zone_is_rejected(self):
         settings = SystemSettings(time_zone="Not/A_Timezone")
 
@@ -61,7 +112,12 @@ class SystemSettingsTests(TestCase):
 
     def test_authenticated_requests_activate_system_time_zone(self):
         User = get_user_model()
-        user = User.objects.create_user(username="owner", password="correct-password")
+        user = User.objects.create_user(
+            username="owner",
+            password="correct-password",
+            is_staff=True,
+            is_superuser=True,
+        )
         SystemSettings.get_solo()
         SystemSettings.objects.update(time_zone="America/Los_Angeles")
         self.client.force_login(user)

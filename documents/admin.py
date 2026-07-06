@@ -15,6 +15,7 @@ class ClinicalDocumentAdmin(admin.ModelAdmin):
         "source_date",
     )
     list_display_links = ("title",)
+    ordering = ("-source_date",)
 
     search_fields = (
         "title",

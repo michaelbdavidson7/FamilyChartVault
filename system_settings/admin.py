@@ -1,6 +1,6 @@
-from django.contrib import admin
 from django import forms
 from django.conf import settings
+from django.contrib import admin
 from django.contrib import messages
 from django.utils import timezone
 
@@ -38,10 +38,16 @@ class SystemSettingsAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Lock screen",
+            "Locking",
             {
-                "fields": ("lock_shortcut_enabled",),
-                "description": "Manual Lock app is always available from the account menu. The keyboard shortcut is opt in.",
+                "fields": (
+                    "app_lock_enabled",
+                    "lock_shortcut_enabled",
+                    "login_lockout_enabled",
+                ),
+                "description": (
+                    "Sign-in and locking features are off by default. Turn them on only if this computer needs extra local protection."
+                ),
             },
         ),
         (
