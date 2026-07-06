@@ -3,22 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="HolyFHIR Personal EMR is a local, offline-first health-record organizer for personal and family medical information on your Windows PC.">
+  <meta name="description" content="HolyFHIR Personal EMR helps families and caregivers keep health records, documents, medications, visits, and FHIR exports organized locally on a Windows PC.">
   <title>HolyFHIR Personal EMR</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <style>
     :root {
       color-scheme: light;
       --ink: #16202a;
-      --muted: #5f6d7a;
-      --line: #d9e1e7;
-      --paper: #f8faf7;
+      --muted: #62707c;
+      --line: #dce4e7;
+      --paper: #fbfaf7;
       --panel: #ffffff;
       --green: #0d7a63;
       --green-dark: #075747;
       --blue: #235789;
-      --rose: #a84355;
-      --gold: #b7791f;
-      --shadow: 0 18px 48px rgba(13, 39, 58, 0.16);
+      --rose: #b44a64;
+      --gold: #a86f18;
+      --shadow: 0 18px 48px rgba(32, 44, 54, 0.14);
     }
 
     * {
@@ -44,7 +45,7 @@
       top: 0;
       right: 0;
       left: 0;
-      background: rgba(248, 250, 247, 0.88);
+      background: rgba(251, 250, 247, 0.9);
       border-bottom: 1px solid rgba(217, 225, 231, 0.74);
       backdrop-filter: blur(16px);
     }
@@ -68,15 +69,12 @@
     }
 
     .brand-mark {
-      width: 34px;
-      height: 34px;
-      display: grid;
-      place-items: center;
-      color: white;
-      background: var(--green);
-      border-radius: 7px;
-      font-size: 22px;
-      font-weight: 900;
+      width: 38px;
+      height: 38px;
+      display: block;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 6px 16px rgba(13, 39, 58, 0.14);
     }
 
     .nav-links {
@@ -128,8 +126,8 @@
       display: flex;
       align-items: end;
       background:
-        linear-gradient(90deg, rgba(12, 27, 35, 0.88) 0%, rgba(12, 27, 35, 0.62) 45%, rgba(12, 27, 35, 0.18) 100%),
-        linear-gradient(0deg, rgba(248, 250, 247, 1) 0%, rgba(248, 250, 247, 0) 24%),
+        linear-gradient(90deg, rgba(18, 31, 38, 0.88) 0%, rgba(18, 31, 38, 0.62) 45%, rgba(18, 31, 38, 0.14) 100%),
+        linear-gradient(0deg, rgba(251, 250, 247, 1) 0%, rgba(251, 250, 247, 0) 24%),
         url("image.png") center / cover no-repeat;
     }
 
@@ -147,7 +145,7 @@
 
     .eyebrow {
       margin: 0 0 18px;
-      color: #b8e6d9;
+      color: #ffd8c6;
       font-size: 0.88rem;
       font-weight: 800;
       text-transform: uppercase;
@@ -165,7 +163,7 @@
     .hero-text {
       max-width: 650px;
       margin: 24px 0 0;
-      color: rgba(255, 255, 255, 0.88);
+      color: rgba(255, 255, 255, 0.9);
       font-size: clamp(1.08rem, 2.3vw, 1.35rem);
       line-height: 1.55;
     }
@@ -278,7 +276,7 @@
     }
 
     .workflow {
-      background: #edf3f1;
+      background: linear-gradient(180deg, #f3f7f4 0%, #fff8f2 100%);
       border-top: 1px solid var(--line);
       border-bottom: 1px solid var(--line);
     }
@@ -343,7 +341,7 @@
       gap: 42px;
       align-items: start;
       padding: 46px;
-      background: #182530;
+      background: #192833;
       color: white;
       border-radius: 8px;
     }
@@ -356,7 +354,7 @@
 
     .notice p {
       margin: 0 0 16px;
-      color: rgba(255, 255, 255, 0.78);
+      color: rgba(255, 255, 255, 0.8);
       line-height: 1.68;
     }
 
@@ -389,8 +387,8 @@
         min-height: 860px;
         align-items: center;
         background:
-          linear-gradient(90deg, rgba(12, 27, 35, 0.9), rgba(12, 27, 35, 0.46)),
-          linear-gradient(0deg, rgba(248, 250, 247, 1) 0%, rgba(248, 250, 247, 0) 22%),
+          linear-gradient(90deg, rgba(18, 31, 38, 0.9), rgba(18, 31, 38, 0.46)),
+          linear-gradient(0deg, rgba(251, 250, 247, 1) 0%, rgba(251, 250, 247, 0) 22%),
           url("image.png") 58% center / cover no-repeat;
       }
 
@@ -446,13 +444,13 @@
   <header class="site-header">
     <nav class="nav" aria-label="Primary navigation">
       <a class="brand" href="#">
-        <span class="brand-mark">+</span>
+        <img class="brand-mark" src="holyfhir-logo.png" alt="" aria-hidden="true">
         <span>HolyFHIR Personal EMR</span>
       </a>
       <div class="nav-links">
-        <a href="#records">Records</a>
-        <a href="#workflow">Workflow</a>
-        <a href="#notice">Notice</a>
+        <a href="#records">Family records</a>
+        <a href="#workflow">Appointment prep</a>
+        <a href="#notice">Safety notes</a>
         <a class="button primary" href="https://github.com/Code-Blue-Solutions-LLC/personal-emr/releases/latest">Download</a>
       </div>
     </nav>
@@ -462,10 +460,10 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-inner">
         <div class="hero-copy">
-          <p class="eyebrow">Local Windows desktop health records</p>
+          <p class="eyebrow">Family health records for everyone you look after</p>
           <h1 id="hero-title">HolyFHIR Personal EMR</h1>
           <p class="hero-text">
-            Keep a local, organized copy of personal and family medical records, documents, medications, visits, observations, and imported FHIR data on your own computer.
+            A calmer place for the health details families are always trying to find: medications, allergies, visits, school forms, care notes, lab results, documents, and portal exports, kept locally on your own computer.
           </p>
           <div class="hero-actions">
             <a class="button primary" href="https://github.com/Code-Blue-Solutions-LLC/personal-emr/releases/latest">Download for Windows</a>
@@ -474,15 +472,15 @@
         </div>
         <div class="hero-points" aria-label="Key product qualities">
           <div class="hero-point">
-            <strong>Offline-first</strong>
-            <span>The app is designed for local storage and does not require a cloud account.</span>
+            <strong>Private by default</strong>
+            <span>Keep records on your Windows PC without signing the family up for another cloud account.</span>
           </div>
           <div class="hero-point">
-            <strong>Family-ready</strong>
-            <span>Track patients, documents, visits, and clinical history for household care.</span>
+            <strong>Made for households</strong>
+            <span>Keep histories, documents, visits, and medications for children, parents, partners, or anyone else you care for in one steady place.</span>
           </div>
           <div class="hero-point">
-            <strong>FHIR-aware</strong>
+            <strong>Portal-export friendly</strong>
             <span>Import supported FHIR records, including MyChart requested-record exports.</span>
           </div>
         </div>
@@ -492,31 +490,31 @@
     <section id="records" aria-labelledby="records-title">
       <div class="wrap">
         <div class="section-heading">
-          <h2 id="records-title">A personal chart you control.</h2>
+          <h2 id="records-title">One place for the details that follow your family around.</h2>
           <p>
-            HolyFHIR gives you a structured place for health information that usually gets scattered across portals, PDFs, pharmacy records, and memory.
+            HolyFHIR gives you a structured home for information that tends to scatter across portals, PDFs, pharmacy bags, discharge papers, school forms, care notes, and memory.
           </p>
         </div>
         <div class="feature-grid">
           <article class="feature">
             <div class="icon" aria-hidden="true">P</div>
-            <h3>Patient profiles</h3>
-            <p>Keep profiles for yourself or family members with related conditions, allergies, medications, visits, and documents nearby.</p>
+            <h3>Family profiles</h3>
+            <p>Keep a profile for each person you care for with conditions, allergies, medications, visits, immunizations, and documents nearby.</p>
           </article>
           <article class="feature">
             <div class="icon" aria-hidden="true">F</div>
-            <h3>FHIR imports</h3>
-            <p>Bring in supported FHIR JSON, NDJSON, bundles, and requested-record ZIP exports while retaining raw source snapshots.</p>
+            <h3>Portal records</h3>
+            <p>Bring in supported FHIR JSON, NDJSON, bundles, and requested-record ZIP exports while keeping the original source snapshots.</p>
           </article>
           <article class="feature">
             <div class="icon" aria-hidden="true">D</div>
-            <h3>Clinical documents</h3>
-            <p>Organize PDFs, reports, visit summaries, labs, and other records so they are easier to find when appointments come up.</p>
+            <h3>Appointment papers</h3>
+            <p>Organize PDFs, reports, visit summaries, labs, school notes, care instructions, and other records so they are easier to find when appointments come up.</p>
           </article>
           <article class="feature">
             <div class="icon" aria-hidden="true">T</div>
-            <h3>Health trends</h3>
-            <p>Chart numeric observations such as blood pressure, weight, glucose, vitals, and lab values over time.</p>
+            <h3>Growth and trends</h3>
+            <p>Chart numeric observations such as weight, blood pressure, glucose, vitals, and lab values over time.</p>
           </article>
         </div>
       </div>
@@ -533,23 +531,23 @@
     <section id="workflow" class="workflow" aria-labelledby="workflow-title">
       <div class="wrap">
         <div class="section-heading">
-          <h2 id="workflow-title">Built for quiet, local record keeping.</h2>
+          <h2 id="workflow-title">Built for the night-before-the-appointment scramble.</h2>
           <p>
-            The app is designed for people who want a personal reference library for medical information, not a replacement for official records or medical care.
+            The app is designed to help you gather what you know, check what you have, and walk into the next appointment or care conversation with fewer loose ends.
           </p>
         </div>
         <div class="steps">
           <article class="step">
-            <h3>Create your local record space</h3>
+            <h3>Create a calm record space</h3>
             <p>Install the Windows app, create your first user, and keep your password and recovery material in a separate secure place.</p>
           </article>
           <article class="step">
-            <h3>Add people and history</h3>
-            <p>Enter patients, conditions, allergies, medications, immunizations, visits, documents, vitals, and lab observations.</p>
+            <h3>Add the family details</h3>
+            <p>Enter family members, conditions, allergies, medications, immunizations, visits, documents, vitals, and lab observations.</p>
           </article>
           <article class="step">
-            <h3>Use it before appointments</h3>
-            <p>Review important history, trend measurements, and keep a local reference alongside records from clinicians and portals.</p>
+            <h3>Prep before care days</h3>
+            <p>Review important history, trend measurements, and documents alongside records from clinicians, caregivers, portals, and pharmacies.</p>
           </article>
         </div>
       </div>
@@ -558,7 +556,7 @@
     <section id="notice" aria-labelledby="notice-title">
       <div class="wrap">
         <div class="notice">
-          <h2 id="notice-title">Important limits.</h2>
+          <h2 id="notice-title">Important, especially for family care.</h2>
           <div>
             <p>
               HolyFHIR is early software for personal organization. It is not medical advice, not a certified medical record system, not a medical device, and not intended for diagnosis, treatment, emergencies, clinical decision support, or medication safety checking.
@@ -567,7 +565,7 @@
               HolyFHIR is not represented as HIPAA-compliant, certified, validated, audited, production-ready, or appropriate for professional, clinical, organizational, research, or regulated use.
             </p>
             <p>
-              Always verify important health information against official records from your doctor, hospital, pharmacy, lab, or patient portal.
+              Always verify important health information against official records from your doctor, veterinarian, hospital, pharmacy, lab, school nurse, or patient portal.
             </p>
             <p>
               You are responsible for protecting your device, app password, recovery key, backups, database files, and exported records.
@@ -581,7 +579,7 @@
   <footer>
     <div class="footer-inner">
       <span><a href="https://github.com/Code-Blue-Solutions-LLC/personal-emr/blob/main/LICENSE">MIT License</a> | <a href="https://github.com/Code-Blue-Solutions-LLC/personal-emr/blob/main/DISCLAIMER.md">Disclaimer</a></span>
-      <span>Local, offline-first personal health records for Windows.</span>
+      <span>Local, offline-first family health records for Windows.</span>
     </div>
   </footer>
 </body>
