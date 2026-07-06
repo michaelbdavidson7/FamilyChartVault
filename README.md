@@ -10,7 +10,7 @@ HolyFHIR includes models and browsing tools for many FHIR resource types, and it
 
 This project is an early personal recordkeeping tool for people who want more local control over copies of their health information.
 
-![HolyFHIR Personal Family EMR screenshot](https://github.com/user-attachments/assets/a0bf0afa-3c5c-4451-89d8-ea9971fd6b9e)
+![HolyFHIR Personal Family EMR screenshot](docs/images/screenshot.png)
 
 ## Plain-English Summary
 
